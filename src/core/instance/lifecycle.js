@@ -56,6 +56,12 @@ export function initLifecycle(vm: Component) {
 }
 
 export function lifecycleMixin(Vue: Class < Component > ) {
+  /****************************
+   *        _update方法
+   *   将VNode渲染成真实DOM
+   *   首次渲染时调用，数据更新时调用
+   * 核心方法： vm.__patch__
+   ****************************/
   Vue.prototype._update = function(vnode: VNode, hydrating ? : boolean) {
     const vm: Component = this
     const prevEl = vm.$el
@@ -64,8 +70,27 @@ export function lifecycleMixin(Vue: Class < Component > ) {
     vm._vnode = vnode
       // Vue.prototype.__patch__ is injected in entry points
       // based on the rendering backend used.
+      /******************************************************************************
+       * vm.__patch__在不同的平台('src/platforms/')，比如 web 和 weex 上的定义是不一样的   *
+       * web平台：Vue.prototype.__patch__ = inBrowser ? patch : noop                  *
+       * 在服务端渲染中，不需要把 VNode 最终转换成 DOM，因此是noop空函数，                    *
+       * 而在浏览器端渲染中，则是patch 函数(src/platforms/web/runtime/patch.js)            *
+       * 调用（src/core/vdom/patch.js）下的createPatchFunction函数构造                    *
+       * patch(oldVnode, vnode, hydrating, removeOnly) {...}                           *
+       ********************************************************************************/
     if (!prevVnode) {
       // initial render
+      /****************************************************************************
+       * patch方法                                                                 *
+       * oldVnode 表示旧的 VNode 节点，它也可以不存在或者是一个 DOM 对象；                *
+       * vnode 表示执行 _render 后返回的 VNode 的节点；                                *
+       * hydrating 表示是否是服务端渲染；                                              *
+       * removeOnly 是给 transition-group 用的                                       *
+       ****************************************************************************/
+      // 首次渲染的时候
+      // vm.$el传入真实dom，<div id="app">对应的dom对象，它赋值是在之前 mountComponent 函数做的
+      // vnode为虚拟node，对应的是调用 render 函数的返回值，
+      // hydrating 在非服务端渲染情况下为 false
       vm.$el = vm.__patch__(vm.$el, vnode, hydrating, false /* removeOnly */ )
     } else {
       // updates
