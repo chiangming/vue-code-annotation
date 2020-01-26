@@ -15,7 +15,13 @@ import { isFalse, isTrue, isDef, isUndef, isPrimitive } from 'shared/util'
 // normalization is needed - if any child is an Array, we flatten the whole
 // thing with Array.prototype.concat. It is guaranteed to be only 1-level deep
 // because functional components already normalize their own children.
-export function simpleNormalizeChildren (children: any) {
+
+//1. 当子组件包含组件时-因为函数组件
+//可能返回一个数组而不是一个根节点。
+//在这种情况下，只需要一个简单的规范化
+// 如果任何子元素是数组，我们就使用Array.prototype.concat来展开整个过程。
+// 它被保证只有一级深度，因为功能组件已经规范化了它们自己的子组件。
+export function simpleNormalizeChildren(children: any) {
   for (let i = 0; i < children.length; i++) {
     if (Array.isArray(children[i])) {
       return Array.prototype.concat.apply([], children)
@@ -28,19 +34,21 @@ export function simpleNormalizeChildren (children: any) {
 // e.g. <template>, <slot>, v-for, or when the children is provided by user
 // with hand-written render functions / JSX. In such cases a full normalization
 // is needed to cater to all possible types of children values.
-export function normalizeChildren (children: any): ?Array<VNode> {
-  return isPrimitive(children)
-    ? [createTextVNode(children)]
-    : Array.isArray(children)
-      ? normalizeArrayChildren(children)
-      : undefined
+
+// 2. 当子级包含始终生成嵌套数组的构造时，
+// 例如 < template >、<slot>、v-for，或者当用户为子级提供手写的render函数/JSX时。
+// 在这种情况下，需要完全规范化，以满足所有可能类型的子节点值。
+export function normalizeChildren(children: any): ? Array < VNode > {
+  return isPrimitive(children) ? [createTextVNode(children)] : Array.isArray(children) ?
+    normalizeArrayChildren(children) : undefined
 }
 
-function isTextNode (node): boolean {
+function isTextNode(node) : boolean {
   return isDef(node) && isDef(node.text) && isFalse(node.isComment)
 }
 
-function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNode> {
+// 实际上就是多维数组展开成一维数组
+function normalizeArrayChildren(children: any, nestedIndex ? : string): Array < VNode > {
   const res = []
   let i, c, lastIndex, last
   for (i = 0; i < children.length; i++) {
@@ -48,11 +56,11 @@ function normalizeArrayChildren (children: any, nestedIndex?: string): Array<VNo
     if (isUndef(c) || typeof c === 'boolean') continue
     lastIndex = res.length - 1
     last = res[lastIndex]
-    //  nested
+      //  nested
     if (Array.isArray(c)) {
       if (c.length > 0) {
         c = normalizeArrayChildren(c, `${nestedIndex || ''}_${i}`)
-        // merge adjacent text nodes
+          // merge adjacent text nodes
         if (isTextNode(c[0]) && isTextNode(last)) {
           res[lastIndex] = createTextVNode(last.text + (c[0]: any).text)
           c.shift()
