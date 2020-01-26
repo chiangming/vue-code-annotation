@@ -25,22 +25,23 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   const warnReservedPrefix = (target, key) => {
-    warn(
-      `Property "${key}" must be accessed with "$data.${key}" because ` +
-      'properties starting with "$" or "_" are not proxied in the Vue instance to ' +
-      'prevent conflicts with Vue internals. ' +
-      'See: https://vuejs.org/v2/api/#data',
-      target
-    )
-  }
-
+      warn(
+        `Property "${key}" must be accessed with "$data.${key}" because ` +
+        'properties starting with "$" or "_" are not proxied in the Vue instance to ' +
+        'prevent conflicts with Vue internals. ' +
+        'See: https://vuejs.org/v2/api/#data',
+        target
+      )
+    }
+    // 判断浏览器是否支持Proxy这个ES6提供的API
+    // Proxy的作用即为对对象访问做一个劫持
   const hasProxy =
     typeof Proxy !== 'undefined' && isNative(Proxy)
 
   if (hasProxy) {
     const isBuiltInModifier = makeMap('stop,prevent,self,ctrl,shift,alt,meta,exact')
     config.keyCodes = new Proxy(config.keyCodes, {
-      set (target, key, value) {
+      set(target, key, value) {
         if (isBuiltInModifier(key)) {
           warn(`Avoid overwriting built-in modifier in config.keyCodes: .${key}`)
           return false
@@ -51,9 +52,9 @@ if (process.env.NODE_ENV !== 'production') {
       }
     })
   }
-
+  // 报错信息
   const hasHandler = {
-    has (target, key) {
+    has(target, key) {
       const has = key in target
       const isAllowed = allowedGlobals(key) ||
         (typeof key === 'string' && key.charAt(0) === '_' && !(key in target.$data))
@@ -66,7 +67,7 @@ if (process.env.NODE_ENV !== 'production') {
   }
 
   const getHandler = {
-    get (target, key) {
+    get(target, key) {
       if (typeof key === 'string' && !(key in target)) {
         if (key in target.$data) warnReservedPrefix(target, key)
         else warnNonPresent(target, key)
@@ -75,13 +76,13 @@ if (process.env.NODE_ENV !== 'production') {
     }
   }
 
-  initProxy = function initProxy (vm) {
+  initProxy = function initProxy(vm) {
     if (hasProxy) {
       // determine which proxy handler to use
       const options = vm.$options
-      const handlers = options.render && options.render._withStripped
-        ? getHandler
-        : hasHandler
+      const handlers = options.render && options.render._withStripped ?
+        getHandler :
+        hasHandler
       vm._renderProxy = new Proxy(vm, handlers)
     } else {
       vm._renderProxy = vm
