@@ -2,7 +2,7 @@
 
 import config from '../config'
 import { warn } from './debug'
-import { set } from '../observer/index'
+import {set } from '../observer/index'
 import { unicodeRegExp } from './lang'
 import { nativeWatch, hasSymbol } from './env'
 
@@ -32,7 +32,7 @@ const strats = config.optionMergeStrategies
  * Options with restrictions
  */
 if (process.env.NODE_ENV !== 'production') {
-  strats.el = strats.propsData = function (parent, child, vm, key) {
+  strats.el = strats.propsData = function(parent, child, vm, key) {
     if (!vm) {
       warn(
         `option "${key}" can only be used during instance ` +
@@ -46,17 +46,17 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Helper that recursively merges two data objects together.
  */
-function mergeData (to: Object, from: ?Object): Object {
+function mergeData(to: Object, from: ? Object): Object {
   if (!from) return to
   let key, toVal, fromVal
 
-  const keys = hasSymbol
-    ? Reflect.ownKeys(from)
-    : Object.keys(from)
+  const keys = hasSymbol ?
+    Reflect.ownKeys(from) :
+    Object.keys(from)
 
   for (let i = 0; i < keys.length; i++) {
     key = keys[i]
-    // in case the object is already observed...
+      // in case the object is already observed...
     if (key === '__ob__') continue
     toVal = to[key]
     fromVal = from[key]
@@ -76,11 +76,11 @@ function mergeData (to: Object, from: ?Object): Object {
 /**
  * Data
  */
-export function mergeDataOrFn (
+export function mergeDataOrFn(
   parentVal: any,
   childVal: any,
-  vm?: Component
-): ?Function {
+  vm ? : Component
+): ? Function {
   if (!vm) {
     // in a Vue.extend merge, both should be functions
     if (!childVal) {
@@ -94,21 +94,21 @@ export function mergeDataOrFn (
     // merged result of both functions... no need to
     // check if parentVal is a function here because
     // it has to be a function to pass previous merges.
-    return function mergedDataFn () {
+    return function mergedDataFn() {
       return mergeData(
         typeof childVal === 'function' ? childVal.call(this, this) : childVal,
         typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
       )
     }
   } else {
-    return function mergedInstanceDataFn () {
+    return function mergedInstanceDataFn() {
       // instance merge
-      const instanceData = typeof childVal === 'function'
-        ? childVal.call(vm, vm)
-        : childVal
-      const defaultData = typeof parentVal === 'function'
-        ? parentVal.call(vm, vm)
-        : parentVal
+      const instanceData = typeof childVal === 'function' ?
+        childVal.call(vm, vm) :
+        childVal
+      const defaultData = typeof parentVal === 'function' ?
+        parentVal.call(vm, vm) :
+        parentVal
       if (instanceData) {
         return mergeData(instanceData, defaultData)
       } else {
@@ -118,11 +118,11 @@ export function mergeDataOrFn (
   }
 }
 
-strats.data = function (
+strats.data = function(
   parentVal: any,
   childVal: any,
-  vm?: Component
-): ?Function {
+  vm ? : Component
+): ? Function {
   if (!vm) {
     if (childVal && typeof childVal !== 'function') {
       process.env.NODE_ENV !== 'production' && warn(
@@ -143,23 +143,27 @@ strats.data = function (
 /**
  * Hooks and props are merged as arrays.
  */
-function mergeHook (
-  parentVal: ?Array<Function>,
-  childVal: ?Function | ?Array<Function>
-): ?Array<Function> {
-  const res = childVal
-    ? parentVal
-      ? parentVal.concat(childVal)
-      : Array.isArray(childVal)
-        ? childVal
-        : [childVal]
-    : parentVal
-  return res
-    ? dedupeHooks(res)
-    : res
+/************************************************************************
+ * 对于钩子函数，他们的合并策略都是 mergeHook 函数。
+ * 如果不存在 childVal ，就返回 parentVal；
+ * 否则再判断是否存在 parentVal，如果存在就把 childVal 添加到 parentVal 后返回新数组；
+ * 否则返回 childVal 的数组。
+ * 一旦 parent 和 child 都定义了相同的钩子函数，那么它们会把 2 个钩子函数合并成一个数组。
+ ***************************************************************************/
+function mergeHook(
+  parentVal: ? Array < Function > ,
+  childVal : ? Function | ? Array < Function >
+) : ? Array < Function > {
+  const res = childVal ?
+    parentVal ?
+    parentVal.concat(childVal) :
+    Array.isArray(childVal) ?
+    childVal : [childVal] : parentVal
+  return res ?
+    dedupeHooks(res) : res
 }
 
-function dedupeHooks (hooks) {
+function dedupeHooks(hooks) {
   const res = []
   for (let i = 0; i < hooks.length; i++) {
     if (res.indexOf(hooks[i]) === -1) {
@@ -180,12 +184,12 @@ LIFECYCLE_HOOKS.forEach(hook => {
  * a three-way merge between constructor options, instance
  * options and parent options.
  */
-function mergeAssets (
-  parentVal: ?Object,
-  childVal: ?Object,
-  vm?: Component,
-  key: string
-): Object {
+function mergeAssets(
+  parentVal: ? Object,
+  childVal : ? Object,
+  vm ? : Component,
+  key : string
+) : Object {
   const res = Object.create(parentVal || null)
   if (childVal) {
     process.env.NODE_ENV !== 'production' && assertObjectType(key, childVal, vm)
@@ -195,7 +199,7 @@ function mergeAssets (
   }
 }
 
-ASSET_TYPES.forEach(function (type) {
+ASSET_TYPES.forEach(function(type) {
   strats[type + 's'] = mergeAssets
 })
 
@@ -205,16 +209,16 @@ ASSET_TYPES.forEach(function (type) {
  * Watchers hashes should not overwrite one
  * another, so we merge them as arrays.
  */
-strats.watch = function (
-  parentVal: ?Object,
-  childVal: ?Object,
-  vm?: Component,
-  key: string
-): ?Object {
+strats.watch = function(
+  parentVal: ? Object,
+  childVal : ? Object,
+  vm ? : Component,
+  key : string
+): ? Object {
   // work around Firefox's Object.prototype.watch...
   if (parentVal === nativeWatch) parentVal = undefined
   if (childVal === nativeWatch) childVal = undefined
-  /* istanbul ignore if */
+    /* istanbul ignore if */
   if (!childVal) return Object.create(parentVal || null)
   if (process.env.NODE_ENV !== 'production') {
     assertObjectType(key, childVal, vm)
@@ -228,9 +232,9 @@ strats.watch = function (
     if (parent && !Array.isArray(parent)) {
       parent = [parent]
     }
-    ret[key] = parent
-      ? parent.concat(child)
-      : Array.isArray(child) ? child : [child]
+    ret[key] = parent ?
+      parent.concat(child) :
+      Array.isArray(child) ? child : [child]
   }
   return ret
 }
@@ -239,44 +243,44 @@ strats.watch = function (
  * Other object hashes.
  */
 strats.props =
-strats.methods =
-strats.inject =
-strats.computed = function (
-  parentVal: ?Object,
-  childVal: ?Object,
-  vm?: Component,
-  key: string
-): ?Object {
-  if (childVal && process.env.NODE_ENV !== 'production') {
-    assertObjectType(key, childVal, vm)
+  strats.methods =
+  strats.inject =
+  strats.computed = function(
+    parentVal: ? Object,
+    childVal : ? Object,
+    vm ? : Component,
+    key : string
+  ): ? Object {
+    if (childVal && process.env.NODE_ENV !== 'production') {
+      assertObjectType(key, childVal, vm)
+    }
+    if (!parentVal) return childVal
+    const ret = Object.create(null)
+    extend(ret, parentVal)
+    if (childVal) extend(ret, childVal)
+    return ret
   }
-  if (!parentVal) return childVal
-  const ret = Object.create(null)
-  extend(ret, parentVal)
-  if (childVal) extend(ret, childVal)
-  return ret
-}
 strats.provide = mergeDataOrFn
 
 /**
  * Default strategy.
  */
-const defaultStrat = function (parentVal: any, childVal: any): any {
-  return childVal === undefined
-    ? parentVal
-    : childVal
+const defaultStrat = function(parentVal: any, childVal: any): any {
+  return childVal === undefined ?
+    parentVal :
+    childVal
 }
 
 /**
  * Validate component names
  */
-function checkComponents (options: Object) {
+function checkComponents(options: Object) {
   for (const key in options.components) {
     validateComponentName(key)
   }
 }
 
-export function validateComponentName (name: string) {
+export function validateComponentName(name: string) {
   if (!new RegExp(`^[a-zA-Z][\\-\\.0-9_${unicodeRegExp.source}]*$`).test(name)) {
     warn(
       'Invalid component name: "' + name + '". Component names ' +
@@ -295,7 +299,7 @@ export function validateComponentName (name: string) {
  * Ensure all props option syntax are normalized into the
  * Object-based format.
  */
-function normalizeProps (options: Object, vm: ?Component) {
+function normalizeProps(options: Object, vm: ? Component) {
   const props = options.props
   if (!props) return
   const res = {}
@@ -315,9 +319,8 @@ function normalizeProps (options: Object, vm: ?Component) {
     for (const key in props) {
       val = props[key]
       name = camelize(key)
-      res[name] = isPlainObject(val)
-        ? val
-        : { type: val }
+      res[name] = isPlainObject(val) ?
+        val : { type: val }
     }
   } else if (process.env.NODE_ENV !== 'production') {
     warn(
@@ -332,7 +335,7 @@ function normalizeProps (options: Object, vm: ?Component) {
 /**
  * Normalize all injections into Object-based format
  */
-function normalizeInject (options: Object, vm: ?Component) {
+function normalizeInject(options: Object, vm: ? Component) {
   const inject = options.inject
   if (!inject) return
   const normalized = options.inject = {}
@@ -343,9 +346,8 @@ function normalizeInject (options: Object, vm: ?Component) {
   } else if (isPlainObject(inject)) {
     for (const key in inject) {
       const val = inject[key]
-      normalized[key] = isPlainObject(val)
-        ? extend({ from: key }, val)
-        : { from: val }
+      normalized[key] = isPlainObject(val) ?
+        extend({ from: key }, val) : { from: val }
     }
   } else if (process.env.NODE_ENV !== 'production') {
     warn(
@@ -359,7 +361,7 @@ function normalizeInject (options: Object, vm: ?Component) {
 /**
  * Normalize raw function directives into object format.
  */
-function normalizeDirectives (options: Object) {
+function normalizeDirectives(options: Object) {
   const dirs = options.directives
   if (dirs) {
     for (const key in dirs) {
@@ -371,7 +373,7 @@ function normalizeDirectives (options: Object) {
   }
 }
 
-function assertObjectType (name: string, value: any, vm: ?Component) {
+function assertObjectType(name: string, value: any, vm: ? Component) {
   if (!isPlainObject(value)) {
     warn(
       `Invalid value for option "${name}": expected an Object, ` +
@@ -385,10 +387,17 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
  */
-export function mergeOptions (
+/**********************************************************************
+ * 把 parent 和 child 这两个对象根据一些合并策略，合并成一个新对象并返回。
+ * 比较核心的几步:
+ * 先递归把 extends 和 mixins 合并到 parent 上，
+ * 然后遍历 parent，调用 mergeField，
+ * 然后再遍历 child，如果 key 不在 parent 的自身属性上，则调用 mergeField。
+ ***********************************************************************/
+export function mergeOptions(
   parent: Object,
   child: Object,
-  vm?: Component
+  vm ? : Component
 ): Object {
   if (process.env.NODE_ENV !== 'production') {
     checkComponents(child)
@@ -427,7 +436,8 @@ export function mergeOptions (
       mergeField(key)
     }
   }
-  function mergeField (key) {
+
+  function mergeField(key) {
     const strat = strats[key] || defaultStrat
     options[key] = strat(parent[key], child[key], vm, key)
   }
@@ -439,24 +449,24 @@ export function mergeOptions (
  * This function is used because child instances need access
  * to assets defined in its ancestor chain.
  */
-export function resolveAsset (
+export function resolveAsset(
   options: Object,
   type: string,
   id: string,
-  warnMissing?: boolean
+  warnMissing ? : boolean
 ): any {
   /* istanbul ignore if */
   if (typeof id !== 'string') {
     return
   }
   const assets = options[type]
-  // check local registration variations first
+    // check local registration variations first
   if (hasOwn(assets, id)) return assets[id]
   const camelizedId = camelize(id)
   if (hasOwn(assets, camelizedId)) return assets[camelizedId]
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
-  // fallback to prototype chain
+    // fallback to prototype chain
   const res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {
     warn(

@@ -32,14 +32,18 @@ export function initMixin(Vue: Class < Component > ) {
       /*****************************
        *  子组件构造器调用_init方法时  *
        *****************************/
+
+    // 配置合并
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
+      // 组件配置合并
       initInternalComponent(vm, options)
     } else {
+      // 外部调用下的配置合并
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
+        resolveConstructorOptions(vm.constructor), // 返回vm.constructor.options，相当于 Vue.options
         options || {},
         vm
       )

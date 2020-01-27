@@ -5,7 +5,7 @@ import { initUse } from './use'
 import { initMixin } from './mixin'
 import { initExtend } from './extend'
 import { initAssetRegisters } from './assets'
-import { set, del } from '../observer/index'
+import {set, del } from '../observer/index'
 import { ASSET_TYPES } from 'shared/constants'
 import builtInComponents from '../components/index'
 import { observe } from 'core/observer/index'
@@ -18,7 +18,7 @@ import {
   defineReactive
 } from '../util/index'
 
-export function initGlobalAPI (Vue: GlobalAPI) {
+export function initGlobalAPI(Vue: GlobalAPI) {
   // config
   const configDef = {}
   configDef.get = () => config
@@ -46,21 +46,27 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   Vue.nextTick = nextTick
 
   // 2.6 explicit observable API
-  Vue.observable = <T>(obj: T): T => {
+  Vue.observable = < T > (obj: T): T => {
     observe(obj)
     return obj
   }
 
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
-    Vue.options[type + 's'] = Object.create(null)
-  })
+      Vue.options[type + 's'] = Object.create(null)
+    })
+    //相当于
+    //Vue.options.components = {}
+    //Vue.options.directives = {}
+    //Vue.options.filters = {}
 
   // this is used to identify the "base" constructor to extend all plain-object
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue
 
   extend(Vue.options.components, builtInComponents)
+    // 把<keep-alive>内置组件扩展到 Vue.options.components 上，
+    // Vue 的内置组件目前有<keep-alive> 、<transition> 和 <transition-group> 组件
 
   initUse(Vue)
   initMixin(Vue)
