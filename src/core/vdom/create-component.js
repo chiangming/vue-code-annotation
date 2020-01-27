@@ -33,6 +33,7 @@ import {
 } from 'weex/runtime/recycle-list/render-component-template'
 
 // inline hooks to be invoked on component VNodes during patch
+
 // hook包括了init，prepatch，insert，destroy
 // 此处activeInstance为当前激活的vm实例
 // vm.$vnode为组件占位vnode
@@ -72,12 +73,14 @@ const componentVNodeHooks = {
       options.children // new children
     )
   },
-
+  // 每个子组件都是在这个钩子函数中执行 mounted 钩子函数，
+  // insertedVnodeQueue 的添加顺序是先子后父，
+  // 所以对于同步渲染的子组件而言，mounted 钩子函数的执行顺序也是先子后父。
   insert(vnode: MountedComponentVNode) {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
       componentInstance._isMounted = true
-      callHook(componentInstance, 'mounted')
+      callHook(componentInstance, 'mounted') // [生命周期:mounted] 子组件完成挂载
     }
     if (vnode.data.keepAlive) {
       if (context._isMounted) {

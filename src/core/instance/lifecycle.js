@@ -125,12 +125,14 @@ export function lifecycleMixin(Vue: Class < Component > ) {
     if (vm._isBeingDestroyed) {
       return
     }
+    // [生命周期：beforeDestroy] 先父后子调用
     callHook(vm, 'beforeDestroy')
     vm._isBeingDestroyed = true
       // remove self from parent
+      // 将自身从父组件中移除
     const parent = vm.$parent
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
-      remove(parent.$children, vm)
+      remove(parent.$children, vm) // DOM的移除
     }
     // teardown watchers
     if (vm._watcher) {
@@ -148,8 +150,10 @@ export function lifecycleMixin(Vue: Class < Component > ) {
     // call the last hook...
     vm._isDestroyed = true
       // invoke destroy hooks on current rendered tree
+      // 把子组件递归的销毁
     vm.__patch__(vm._vnode, null)
       // fire destroyed hook
+      // [生命周期：destroyed] 先子后父调用
     callHook(vm, 'destroyed')
       // turn off all instance listeners.
     vm.$off()
@@ -199,7 +203,7 @@ export function mountComponent(
       }
     }
   }
-  // 生命周期：beforeMount
+  // [生命周期：beforeMount] 确保有render函数
   callHook(vm, 'beforeMount')
 
   let updateComponent
@@ -266,7 +270,7 @@ export function mountComponent(
   // vm.$vnode == null 表示当前是根 Vue 的实例
   if (vm.$vnode == null) {
     vm._isMounted = true // 实例已经挂载完毕
-    callHook(vm, 'mounted') // 生命周期：mounted 
+    callHook(vm, 'mounted') // [生命周期：mounted] 父组件及所有子组件都挂载完毕
   }
   return vm
 }
@@ -392,6 +396,8 @@ export function deactivateChildComponent(vm: Component, direct ? : boolean) {
   }
 }
 
+// callHook 函数根据传入的字符串 hook，去拿到 vm.$options[hook] 对应的回调函数数组，
+// 然后遍历执行，执行的时候把 vm 作为函数执行的上下文。
 export function callHook(vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
@@ -407,3 +413,26 @@ export function callHook(vm: Component, hook: string) {
   }
   popTarget()
 }
+
+/**************************************************************************************************************************
+ * beforeCreate ：是拿不到props，methods，data，computed和watch的
+ *                主要是用来混入vue-router、vuex等三方组件
+ *                在实例化 Vue 的阶段，在 _init 方法中执行的，定义在 src/core/instance/init.js 中
+ * created      ：可以拿到props，methods，data，computed和watch 
+ *                函数都是在实例化 Vue 的阶段，在 _init 方法中执行的，定义在 src/core/instance/init.js 中
+ * beforeMount  ：确保有render函数
+ *                在 mount阶段，也就是 DOM 挂载之前，在 mountComponent 函数中执行，定义在 当前lifecycle.js 中
+ * Mounted      ：1.表示父子组件全部挂载完毕，
+ *                  调用在 当前lifecycle.js 中 
+ *                2.表示子组件挂载完毕，
+ *                  调用在 定义在 vdom/patch.js的invokeInsertHook函数执行定义在 vdom/create-component.js 中的insert 这个钩子函数 
+ * beforeUpdate ：数据渲染之前，数据更新之后执行
+ *                在组件已经 mounted 之后（vm._isMounted == true），才会去调用 
+ *                在渲染 Watcher 的 before 函数中执行,定义在 当前lifecycle.js 中
+ * update       ：在数据重渲染（Virtual DOM re-render and patch）之后执行
+ *                在flushSchedulerQueue 函数调用时执行，它的定义在 src/core/observer/scheduler.js 中：
+ * beforeDestroy：先父后子执行
+ * destroyed    ：先子后父执行，可以做一些定时器的销毁工作
+ *                钩子函数的执行时机在组件销毁的阶段，最终会调用 $destroy 方法，它的定义在 当前lifecycle.js 中
+ * activated 和 deactivated 钩子函数是专门为 keep-alive 组件定制的钩子
+ ***********************************************************************************************************************/

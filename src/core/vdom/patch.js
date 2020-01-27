@@ -329,7 +329,8 @@ export function createPatchFunction(backend) {
     }
     return isDef(vnode.tag)
   }
-
+  // 将vnode插入到insertedVnodeQueue 
+  // i.create和i.insert定义在vdom/create-component.js中
   function invokeCreateHooks(vnode, insertedVnodeQueue) {
     for (let i = 0; i < cbs.create.length; ++i) {
       cbs.create[i](emptyNode, vnode)

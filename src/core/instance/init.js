@@ -43,7 +43,7 @@ export function initMixin(Vue: Class < Component > ) {
     } else {
       // 外部调用下的配置合并
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor), // 返回vm.constructor.options，相当于 Vue.options
+        resolveConstructorOptions(vm.constructor), // 返回vm.constructor.options，相当于 Vue.options 在initGlobalAPI(Vue)中定义
         options || {},
         vm
       )
@@ -59,10 +59,15 @@ export function initMixin(Vue: Class < Component > ) {
     initLifecycle(vm)
     initEvents(vm)
     initRender(vm)
+
+    // beforeCreate是拿不到props，methods，data，computed和watch的
+    // 主要是用来混入vue-router、vuex等三方组件
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
     initState(vm) // 初始化 props，methods，data，computed和watch
     initProvide(vm) // resolve provide after data/props
+
+    // created可以拿到props，methods，data，computed和watch
     callHook(vm, 'created')
 
     /* istanbul ignore if */
@@ -74,6 +79,7 @@ export function initMixin(Vue: Class < Component > ) {
 
     if (vm.$options.el) { // 判断是否绑定el
       vm.$mount(vm.$options.el) // el通过$mount转换为dom对象
+        // 最终执行lifecycle.js中的mountComponent方法
     }
   }
 }
