@@ -4,7 +4,7 @@ import { ASSET_TYPES } from 'shared/constants'
 import { defineComputed, proxy } from '../instance/state'
 import { extend, mergeOptions, validateComponentName } from '../util/index'
 
-export function initExtend (Vue: GlobalAPI) {
+export function initExtend(Vue: GlobalAPI) {
   /**
    * Each instance constructor, including Vue, has a unique
    * cid. This enables us to create wrapped "child
@@ -16,30 +16,35 @@ export function initExtend (Vue: GlobalAPI) {
   /**
    * Class inheritance
    */
-  Vue.extend = function (extendOptions: Object): Function {
+  Vue.extend = function(extendOptions: Object): Function {
     extendOptions = extendOptions || {}
-    const Super = this
+    const Super = this //this指向Vue，不是vm
     const SuperId = Super.cid
+
+    // 做了一层构造器的缓存优化
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
 
+    // 这里的name是组件name
+    // 验证组件名
     const name = extendOptions.name || Super.options.name
     if (process.env.NODE_ENV !== 'production' && name) {
       validateComponentName(name)
     }
 
-    const Sub = function VueComponent (options) {
+    // 原型继承
+    const Sub = function VueComponent(options) {
       this._init(options)
     }
     Sub.prototype = Object.create(Super.prototype)
     Sub.prototype.constructor = Sub
     Sub.cid = cid++
-    Sub.options = mergeOptions(
-      Super.options,
-      extendOptions
-    )
+      Sub.options = mergeOptions(
+        Super.options,
+        extendOptions
+      )
     Sub['super'] = Super
 
     // For props and computed properties, we define the proxy getters on
@@ -53,16 +58,17 @@ export function initExtend (Vue: GlobalAPI) {
     }
 
     // allow further extension/mixin/plugin usage
+    // 全局的静态方法继承
     Sub.extend = Super.extend
     Sub.mixin = Super.mixin
     Sub.use = Super.use
 
     // create asset registers, so extended classes
     // can have their private assets too.
-    ASSET_TYPES.forEach(function (type) {
-      Sub[type] = Super[type]
-    })
-    // enable recursive self-lookup
+    ASSET_TYPES.forEach(function(type) {
+        Sub[type] = Super[type]
+      })
+      // enable recursive self-lookup
     if (name) {
       Sub.options.components[name] = Sub
     }
@@ -80,14 +86,14 @@ export function initExtend (Vue: GlobalAPI) {
   }
 }
 
-function initProps (Comp) {
+function initProps(Comp) {
   const props = Comp.options.props
   for (const key in props) {
     proxy(Comp.prototype, `_props`, key)
   }
 }
 
-function initComputed (Comp) {
+function initComputed(Comp) {
   const computed = Comp.options.computed
   for (const key in computed) {
     defineComputed(Comp.prototype, key, computed[key])
