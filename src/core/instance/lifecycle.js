@@ -41,7 +41,7 @@ export function initLifecycle(vm: Component) {
     parent.$children.push(vm)
   }
 
-  vm.$parent = parent
+  vm.$parent = parent // 建立父子组件的关系
   vm.$root = parent ? parent.$root : vm
 
   vm.$children = []
@@ -67,6 +67,7 @@ export function lifecycleMixin(Vue: Class < Component > ) {
     const prevEl = vm.$el
     const prevVnode = vm._vnode
     const restoreActiveInstance = setActiveInstance(vm)
+      // vm._vnode :通过 vm._render() 返回的组件渲染 VNode，组件的根vnode
     vm._vnode = vnode
       // Vue.prototype.__patch__ is injected in entry points
       // based on the rendering backend used.

@@ -73,7 +73,7 @@ export function renderMixin(Vue: Class < Component > ) {
       //render函数：自己写的或者从template（el）编译生成的，
       //           在$mount过程中合并到vm.$options中
     const { render, _parentVnode } = vm.$options
-
+      // 此处的_parentVnode是在create-component.js下的createComponentInstanceForVnode方法中设置的
     if (_parentVnode) {
       vm.$scopedSlots = normalizeScopedSlots(
         _parentVnode.data.scopedSlots,
@@ -84,7 +84,7 @@ export function renderMixin(Vue: Class < Component > ) {
 
     // set parent vnode. this allows render functions to have access
     // to the data on the placeholder node.
-    vm.$vnode = _parentVnode
+    vm.$vnode = _parentVnode // 当前组件vm的父 VNode
       // render self
     let vnode
     try {

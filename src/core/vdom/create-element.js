@@ -46,7 +46,7 @@ export function createElement(
     return _createElement(context, tag, data, children, normalizationType)
   }
   /***************************************************************
-   * _createElement方法
+   *  render阶段的 _createElement方法
    * context  ：表示 VNode 的上下文环境
    * tag      ：表示标签 如果是一个普通的 html 标签，div，则会实例化一个普通 VNode 节点，
    *            否则通过 createComponent 方法创建一个组件 VNode。

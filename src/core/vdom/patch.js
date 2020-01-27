@@ -151,6 +151,7 @@ export function createPatchFunction(backend) {
     }
 
     vnode.isRootInsert = !nested // for transition enter check
+      // 如果是组件就创建组件
     if (createComponent(vnode, insertedVnodeQueue, parentElm, refElm)) {
       return
     }
@@ -216,18 +217,36 @@ export function createPatchFunction(backend) {
       insert(parentElm, vnode.elm, refElm)
     }
   }
-
+  /******************************************
+   *           patch阶段的createComponent    *
+   *用于子组件的初始化：vnode转换dom      *
+   *  createComponent -> componentVNodeHooks.init 
+   *                  -> createComponentInstanceForVnode 
+   *                  -> new vnode.componentOptions.Ctor(options) 
+   *                  -> 子组件._init(vnode,false)
+   *  1._init(vnode, false)     
+   *     -> 子组件render
+   *      -> 子组件patch（迭代）
+   *  2. initComponent
+   *  3. inser
+   ************************************/
   function createComponent(vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
+      // 针对vnode.data进行判断
     if (isDef(i)) {
       const isReactivated = isDef(vnode.componentInstance) && i.keepAlive
-      if (isDef(i = i.hook) && isDef(i = i.init)) {
-        i(vnode, false /* hydrating */ )
+      if (isDef(i = i.hook) && isDef(i = i.init)) { // i：render节点创建组件VNode （create-component.js）的时候合并钩子函数installComponentHooks中就包含 init钩子函数
+        i(vnode, false /* hydrating */ ) // 此处递归的执行子组件的创建过程
       }
       // after calling the init hook, if the vnode is a child component
       // it should've created a child instance and mounted it. the child
       // component also has set the placeholder vnode's elm.
       // in that case we can just return the element and be done.
+
+      //在调用init钩子之后，如果vnode是一个子组件
+      //它应该已经创建了一个子实例并挂载了它。这个孩子
+      //组件还设置了占位符vnode的elm。
+      //在这种情况下，我们只需要返回元素就可以了。
       if (isDef(vnode.componentInstance)) {
         initComponent(vnode, insertedVnodeQueue)
         insert(parentElm, vnode.elm, refElm)

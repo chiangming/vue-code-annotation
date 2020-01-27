@@ -34,6 +34,9 @@ import {
 
 // inline hooks to be invoked on component VNodes during patch
 // hook包括了init，prepatch，insert，destroy
+// 此处activeInstance为当前激活的vm实例
+// vm.$vnode为组件占位vnode
+// vm._vnode为组件的render渲染vnode
 const componentVNodeHooks = {
   init(vnode: VNodeWithData, hydrating: boolean): ? boolean {
     if (
@@ -45,10 +48,15 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      // 非keep-alive组件 
+      // 创建一个 Vue 的实例，然后调用 $mount 方法挂载子组件
+      // 子组件实例化即在此处进行的createComponentInstanceForVnode调用的Vue.prototype._init方法
+      // 以此来确定vm.$parent建立父子组件的实例关系
       const child = vnode.componentInstance = createComponentInstanceForVnode(
-        vnode,
-        activeInstance
-      )
+          vnode,
+          activeInstance
+        )
+        // 最终会调用 mountComponent 方法，进而执行 children的vm._render() 方法
       child.$mount(hydrating ? vnode.elm : undefined, hydrating)
     }
   },
@@ -99,6 +107,10 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+/***************************************
+ *       render阶段的createComponent    *
+ *      返回的组件vnode                  *
+ ***************************************/
 export function createComponent(
   Ctor: Class < Component > | Function | Object | void,
   data: ? VNodeData,
@@ -221,12 +233,13 @@ export function createComponent(
 
 export function createComponentInstanceForVnode (
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
-  parent: any, // activeInstance in lifecycle state
+  parent: any, // 当前vm实例 // activeInstance in lifecycle state
 ): Component {
+  // 构造一个内部组件的参数
   const options: InternalComponentOptions = {
-    _isComponent: true,
-    _parentVnode: vnode,
-    parent
+    _isComponent: true,// true 表示它是一个组
+    _parentVnode: vnode,// 占位符vnode
+    parent// 表示当前激活的组件实例
   }
   // check inline-template render functions
   const inlineTemplate = vnode.data.inlineTemplate
@@ -234,6 +247,9 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // vnode.componentOptions.Ctor 对应的就是子组件的构造函数，
+  // 它实际上是继承于 Vue 的一个构造器 Sub，（global-api/extend）
+  // 相当于 new Sub(options) 在构造函数中执行了子组件的this._init方法
   return new vnode.componentOptions.Ctor(options)
 }
 
