@@ -35,6 +35,9 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
+// 在initData 和initProps中绑定响应式数据
+// 通过 /** 把 target[sourceKey][key] 的读写变成了对 target[key] 的读写。
+// vm._props（或者_data）.xxx 访问到定义 vm.props(或者data) 中对应的属性
 export function proxy(target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter() {
     return this[sourceKey][key]
@@ -44,9 +47,9 @@ export function proxy(target: Object, sourceKey: string, key: string) {
   }
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
-/**********************************************
- * 初始化 props，methods，data，computed和watch  *
- **********************************************/
+/**
+ * 初始化 props，methods，data，computed和watch
+ */
 export function initState(vm: Component) {
   vm._watchers = []
   const opts = vm.$options
@@ -63,7 +66,14 @@ export function initState(vm: Component) {
     initWatch(vm, opts.watch)
   }
 }
-
+/**
+ * props 的初始化主要过程，就是遍历定义的 props 配置。
+ * 遍历的过程主要做两件事情：
+ * 一个是调用 defineReactive 方法把每个 prop 对应的值变成响应式，
+ * 可以通过 vm._props.xxx 访问到定义 props 中对应的属性。
+ * 
+ * 另一个是通过 proxy 把 vm._props.xxx 的访问代理到 vm.xxx 上
+ */
 function initProps(vm: Component, propsOptions: Object) {
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
@@ -72,6 +82,7 @@ function initProps(vm: Component, propsOptions: Object) {
   const keys = vm.$options._propKeys = []
   const isRoot = !vm.$parent
     // root instance props should be converted
+    // 非根节点的props不被observe
   if (!isRoot) {
     toggleObserving(false)
   }
@@ -113,6 +124,12 @@ function initProps(vm: Component, propsOptions: Object) {
 }
 
 // 初始化data并赋值给vm._data
+/** 
+ * data 的初始化主要过程也是做两件事，
+ * 一个是对定义 data 函数返回对象的遍历，通过 proxy 把每一个值 vm._data.xxx 都代理到 vm.xxx 上；
+ * 另一个是调用 observe 方法观测整个 data 的变化，把 data 也变成响应式，
+ * 可以通过 vm._data.xxx 访问到定义 data 返回函数中对应的属性
+ */
 function initData(vm: Component) {
   let data = vm.$options.data
     // 判断data定义时是data(){ reuturn {}} 还是data：{}
@@ -128,7 +145,7 @@ function initData(vm: Component) {
       vm
     )
   }
-  // proxy data on instance
+  // proxy data on instance 
   // 确保vm绑定的data、props、methods中的属性名不重名
   const keys = Object.keys(data)
   const props = vm.$options.props
@@ -156,6 +173,9 @@ function initData(vm: Component) {
   }
   // observe data
   // 对data数据做响应式处理
+  // 给非 VNode 的对象类型数据添加一个 Observer，如果已经添加过则直接返回，
+  // 否则在满足一定条件下去实例化一个 Observer 对象实例。
+  // 它的作用是给对象的属性添加 getter 和 setter，用于依赖收集和派发更新
   observe(data, true /* asRootData */ )
 }
 
@@ -326,7 +346,7 @@ function createWatcher(
 
 export function stateMixin(Vue: Class < Component > ) {
   // flow somehow has problems with directly declared definition object
-  // when using Object.defineProperty, so we have to procedurally build up
+  // when using /**, so we have to procedurally build up
   // the object here.
   const dataDef = {}
   dataDef.get = function() { return this._data }

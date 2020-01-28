@@ -23,6 +23,15 @@ let uid = 0
  * and fires callback when the expression value changes.
  * This is used for both the $watch() api and directives.
  */
+/**
+ *        渲染Watcher中执行updateComponent方法
+ * 观察者模式 参数
+ * vm：vm
+ * expOrFn：将updateComponent设置为Watcher的getter方法
+ * cb：noop 回调函数为空函数
+ * options：{……}
+ * isRenderWatcher：true 设置为渲染Watcher 
+ */
 export default class Watcher {
   vm: Component;
   expression: string;
@@ -42,6 +51,15 @@ export default class Watcher {
   getter: Function;
   value: any;
 
+  /**
+   * 渲染Watcher中执行updateComponent方法
+   * 观察者模式 参数
+   * @param {} vm vm实例
+   * @param {} expOrFn 将updateComponent设置为Watcher的getter方法
+   * @param {} cb noop 回调函数为空函数
+   * @param {} options ……
+   * @param {} isRenderWatcher true:设置为渲染Watcher
+   */
   constructor(
     vm: Component,
     expOrFn: string | Function,
@@ -76,9 +94,9 @@ export default class Watcher {
       expOrFn.toString() :
       ''
       // parse expression for getter
-      /**************************************
-       *       设置Watcher的get函数           *
-       **************************************/
+      /**
+       *       设置Watcher的get函数
+       */
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {

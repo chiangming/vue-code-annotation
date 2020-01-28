@@ -24,7 +24,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
  */
 export let shouldObserve: boolean = true
 
-export function toggleObserving (value: boolean) {
+export function toggleObserving(value: boolean) {
   shouldObserve = value
 }
 
@@ -39,20 +39,21 @@ export class Observer {
   dep: Dep;
   vmCount: number; // number of vms that have this object as root $data
 
-  constructor (value: any) {
+  constructor(value: any) {
     this.value = value
     this.dep = new Dep()
     this.vmCount = 0
-    def(value, '__ob__', this)
+    def(value, '__ob__', this) // Object.defineProperty(obj, key, {value:this,enumerable:false,writable: true,configurable: true})
+      // value.__ob__不会被walk中的for循环枚举
     if (Array.isArray(value)) {
       if (hasProto) {
         protoAugment(value, arrayMethods)
       } else {
         copyAugment(value, arrayMethods, arrayKeys)
       }
-      this.observeArray(value)
+      this.observeArray(value) // 遍历数组调用-> observe方法 
     } else {
-      this.walk(value)
+      this.walk(value) // 遍历对象属性-> 调用defineReactive方法
     }
   }
 
@@ -61,7 +62,7 @@ export class Observer {
    * getter/setters. This method should only be called when
    * value type is Object.
    */
-  walk (obj: Object) {
+  walk(obj: Object) {
     const keys = Object.keys(obj)
     for (let i = 0; i < keys.length; i++) {
       defineReactive(obj, keys[i])
@@ -71,7 +72,7 @@ export class Observer {
   /**
    * Observe a list of Array items.
    */
-  observeArray (items: Array<any>) {
+  observeArray(items: Array < any > ) {
     for (let i = 0, l = items.length; i < l; i++) {
       observe(items[i])
     }
@@ -84,10 +85,10 @@ export class Observer {
  * Augment a target Object or Array by intercepting
  * the prototype chain using __proto__
  */
-function protoAugment (target, src: Object) {
+function protoAugment(target, src: Object) {
   /* eslint-disable no-proto */
   target.__proto__ = src
-  /* eslint-enable no-proto */
+    /* eslint-enable no-proto */
 }
 
 /**
@@ -95,7 +96,7 @@ function protoAugment (target, src: Object) {
  * hidden properties.
  */
 /* istanbul ignore next */
-function copyAugment (target: Object, src: Object, keys: Array<string>) {
+function copyAugment(target: Object, src: Object, keys: Array < string > ) {
   for (let i = 0, l = keys.length; i < l; i++) {
     const key = keys[i]
     def(target, key, src[key])
@@ -107,7 +108,20 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
  */
-export function observe (value: any, asRootData: ?boolean): Observer | void {
+// 给非 VNode 的对象类型数据添加一个 Observer，如果已经添加过value.__ob__则直接返回，
+// 否则在满足一定条件下去实例化一个 Observer 对象实例。
+/**
+ * 
+ * 首先实例化 Dep 对象，接着通过执行 def 函数把自身实例添加到数据对象 value 的 __ob__ 属性上
+ * new Observer();
+ * 
+ * 对 value 做判断，对于数组会调用 observeArray 方法，否则对纯对象调用 walk 方法。
+ * 可以看到 observeArray 是遍历数组再次调用 observe 方法，
+ * 而 walk 方法是遍历对象的 key 调用 defineReactive 方法
+ * @param {*} value 
+ * @param {*} asRootData 
+ */
+export function observe(value: any, asRootData: ? boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
     return
   }
@@ -115,11 +129,11 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
     ob = value.__ob__
   } else if (
-    shouldObserve &&
+    shouldObserve && // 默认为true,可以通过toggleObserving方法去改变
     !isServerRendering() &&
-    (Array.isArray(value) || isPlainObject(value)) &&
+    (Array.isArray(value) || isPlainObject(value)) && // 数组或者可扩展的对象
     Object.isExtensible(value) &&
-    !value._isVue
+    !value._isVue // 不是vue实例
   ) {
     ob = new Observer(value)
   }
@@ -131,33 +145,44 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
 
 /**
  * Define a reactive property on an Object.
+ * 定义一个响应式对象，给对象动态添加 getter 和 setter
+ * 
+ * defineReactive 函数最开始初始化 Dep 对象的实例，接着拿到 obj 的属性描述符，
+ * 然后对子对象递归调用 observe 方法，这样就保证了无论 obj 的结构多复杂，它的所有子属性也能变成响应式的对象，
+ * 这样我们访问或修改 obj 中一个嵌套较深的属性，也能触发 getter 和 setter。
+ * 最后利用Object.defineProperty去给 obj 的属性 key 添加 getter 和 setter。
+ * 
  */
-export function defineReactive (
+export function defineReactive(
   obj: Object,
   key: string,
   val: any,
-  customSetter?: ?Function,
-  shallow?: boolean
+  customSetter ? : ? Function,
+  shallow ? : boolean
 ) {
   const dep = new Dep()
 
+  // 拿到对象属性的定义
   const property = Object.getOwnPropertyDescriptor(obj, key)
   if (property && property.configurable === false) {
     return
   }
 
   // cater for pre-defined getter/setters
+  // 尝试拿到属性原生getter/setter
   const getter = property && property.get
   const setter = property && property.set
   if ((!getter || setter) && arguments.length === 2) {
+    //todo：  !getter || setter应该是 !getter || ！setter？？？
     val = obj[key]
   }
 
-  let childOb = !shallow && observe(val)
+  let childOb = !shallow && observe(val) // 递归观察子对象
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
-    get: function reactiveGetter () {
+    // 响应式getter ，进行依赖收集
+    get: function reactiveGetter() {
       const value = getter ? getter.call(obj) : val
       if (Dep.target) {
         dep.depend()
@@ -170,9 +195,10 @@ export function defineReactive (
       }
       return value
     },
-    set: function reactiveSetter (newVal) {
+    // 响应式setter，派发更新
+    set: function reactiveSetter(newVal) {
       const value = getter ? getter.call(obj) : val
-      /* eslint-disable no-self-compare */
+        /* eslint-disable no-self-compare */
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
@@ -198,7 +224,7 @@ export function defineReactive (
  * triggers change notification if the property doesn't
  * already exist.
  */
-export function set (target: Array<any> | Object, key: any, val: any): any {
+export function set(target: Array < any > | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
@@ -233,7 +259,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
 /**
  * Delete a property and trigger change if necessary.
  */
-export function del (target: Array<any> | Object, key: any) {
+export function del(target: Array < any > | Object, key: any) {
   if (process.env.NODE_ENV !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
@@ -265,7 +291,7 @@ export function del (target: Array<any> | Object, key: any) {
  * Collect dependencies on array elements when the array is touched, since
  * we cannot intercept array element access like property getters.
  */
-function dependArray (value: Array<any>) {
+function dependArray(value: Array < any > ) {
   for (let e, i = 0, l = value.length; i < l; i++) {
     e = value[i]
     e && e.__ob__ && e.__ob__.dep.depend()
