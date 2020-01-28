@@ -147,14 +147,18 @@ export function createComponent(
     }
 
     // async component
+
+    // 异步组件的创建
     let asyncFactory
-    if (isUndef(Ctor.cid)) {
+    if (isUndef(Ctor.cid)) { // 异步组件还没有生成构造函数，只有工厂函数，也就没有cid
       asyncFactory = Ctor
       Ctor = resolveAsyncComponent(asyncFactory, baseCtor)
       if (Ctor === undefined) {
         // return a placeholder node for async component, which is rendered
         // as a comment node but preserves all the raw information for the node.
         // the information will be used for async server-rendering and hydration.
+
+        // 先返回一个空的注释节点
         return createAsyncPlaceholder(
           asyncFactory,
           data,

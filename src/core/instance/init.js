@@ -60,14 +60,14 @@ export function initMixin(Vue: Class < Component > ) {
     initEvents(vm)
     initRender(vm)
 
-    // beforeCreate是拿不到props，methods，data，computed和watch的
+    // [生命周期：beforeCreate] 是拿不到props，methods，data，computed和watch的
     // 主要是用来混入vue-router、vuex等三方组件
     callHook(vm, 'beforeCreate')
     initInjections(vm) // resolve injections before data/props
     initState(vm) // 初始化 props，methods，data，computed和watch
     initProvide(vm) // resolve provide after data/props
 
-    // created可以拿到props，methods，data，computed和watch
+    // [生命周期：created] 可以拿到props，methods，data，computed和watch
     callHook(vm, 'created')
 
     /* istanbul ignore if */
@@ -80,11 +80,23 @@ export function initMixin(Vue: Class < Component > ) {
     if (vm.$options.el) { // 判断是否绑定el
       vm.$mount(vm.$options.el) // el通过$mount转换为dom对象
         // 最终执行lifecycle.js中的mountComponent方法
+        // [生命周期：beforeMount] 确保有render函数
+        // 
     }
   }
 }
-
+/***************************************************************************************************
+ *       组件局部注册
+ *  export default { components: { HelloWorld } }
+ *  1. 局部注册组件的option放在子组件实例vm.$options
+ * 2. render阶段 _createElement方法生成局部注册组件vnode
+ *        判断isDef(Ctor = resolveAsset(局部注册组件vm.$options, 'components', tag)
+ *        -> resolveAsset 尝试以id、驼峰id、首字母大写id的顺序去获取局部注册components对应的构造函数Ctor
+ *        -> vnode = createComponent(Ctor, data, context, children, tag)
+ ************************************************************************************************/
 export function initInternalComponent(vm: Component, options: InternalComponentOptions) {
+  // vm.constructor 就是子组件的构造函数 Sub
+  // 这里相当于将局部注册组件的option放在局部组件实例vm.$options
   const opts = vm.$options = Object.create(vm.constructor.options)
     // doing this because it's faster than dynamic enumeration.
     // 将（./create-components.js的）createComponentInstanceForVnode 函数传入的几个参数合并到内部的选项 $options 里了。

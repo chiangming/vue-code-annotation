@@ -15,24 +15,24 @@ import {
 import { createEmptyVNode } from 'core/vdom/vnode'
 import { currentRenderingInstance } from 'core/instance/render'
 
-function ensureCtor (comp: any, base) {
+function ensureCtor(comp: any, base) {
   if (
     comp.__esModule ||
     (hasSymbol && comp[Symbol.toStringTag] === 'Module')
   ) {
     comp = comp.default
   }
-  return isObject(comp)
-    ? base.extend(comp)
-    : comp
+  return isObject(comp) ?
+    base.extend(comp) :
+    comp
 }
 
-export function createAsyncPlaceholder (
+export function createAsyncPlaceholder(
   factory: Function,
-  data: ?VNodeData,
-  context: Component,
-  children: ?Array<VNode>,
-  tag: ?string
+  data: ? VNodeData,
+  context : Component,
+  children: ? Array < VNode > ,
+  tag : ? string
 ): VNode {
   const node = createEmptyVNode()
   node.asyncFactory = factory
@@ -40,10 +40,10 @@ export function createAsyncPlaceholder (
   return node
 }
 
-export function resolveAsyncComponent (
+export function resolveAsyncComponent(
   factory: Function,
-  baseCtor: Class<Component>
-): Class<Component> | void {
+  baseCtor: Class < Component >
+): Class < Component > | void {
   if (isTrue(factory.error) && isDef(factory.errorComp)) {
     return factory.errorComp
   }
@@ -68,31 +68,34 @@ export function resolveAsyncComponent (
     let timerLoading = null
     let timerTimeout = null
 
-    ;(owner: any).$on('hook:destroyed', () => remove(owners, owner))
+    ;
+    (owner: any).$on('hook:destroyed', () => remove(owners, owner))
 
+    //强制渲染异步加载的组件
     const forceRender = (renderCompleted: boolean) => {
-      for (let i = 0, l = owners.length; i < l; i++) {
-        (owners[i]: any).$forceUpdate()
-      }
-
-      if (renderCompleted) {
-        owners.length = 0
-        if (timerLoading !== null) {
-          clearTimeout(timerLoading)
-          timerLoading = null
+        for (let i = 0, l = owners.length; i < l; i++) {
+          (owners[i]: any).$forceUpdate() // $forceUpdate()调用渲染watcher的update
         }
-        if (timerTimeout !== null) {
-          clearTimeout(timerTimeout)
-          timerTimeout = null
+
+        if (renderCompleted) {
+          owners.length = 0
+          if (timerLoading !== null) {
+            clearTimeout(timerLoading)
+            timerLoading = null
+          }
+          if (timerTimeout !== null) {
+            clearTimeout(timerTimeout)
+            timerTimeout = null
+          }
         }
       }
-    }
-
-    const resolve = once((res: Object | Class<Component>) => {
+      // once保证函数只执行一次
+      // 当工厂函数异步加载完毕时间调用resovle函数
+    const resolve = once((res: Object | Class < Component > ) => {
       // cache resolved
-      factory.resolved = ensureCtor(res, baseCtor)
-      // invoke callbacks only if this is not a synchronous resolve
-      // (async resolves are shimmed as synchronous during SSR)
+      factory.resolved = ensureCtor(res, baseCtor) // 返回异步组件的构造器
+        // invoke callbacks only if this is not a synchronous resolve
+        // (async resolves are shimmed as synchronous during SSR)
       if (!sync) {
         forceRender(true)
       } else {
@@ -146,9 +149,9 @@ export function resolveAsyncComponent (
             timerTimeout = null
             if (isUndef(factory.resolved)) {
               reject(
-                process.env.NODE_ENV !== 'production'
-                  ? `timeout (${res.timeout}ms)`
-                  : null
+                process.env.NODE_ENV !== 'production' ?
+                `timeout (${res.timeout}ms)` :
+                null
               )
             }
           }, res.timeout)
@@ -156,10 +159,11 @@ export function resolveAsyncComponent (
       }
     }
 
+    // 没有异步加载完毕前，js代码顺序执行，sync值为false，return undefine
     sync = false
-    // return in case resolved synchronously
-    return factory.loading
-      ? factory.loadingComp
-      : factory.resolved
+      // return in case resolved synchronously
+    return factory.loading ?
+      factory.loadingComp :
+      factory.resolved
   }
 }
