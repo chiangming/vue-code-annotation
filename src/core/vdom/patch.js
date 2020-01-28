@@ -122,7 +122,7 @@ export function createPatchFunction(backend) {
 
   let creatingElmInVPre = 0
 
-  /**********************8***********************************************************
+  /**8***********************************************************
    *  createElm: 通过虚拟节点创建真实的 DOM 并插入到它的父节点中。
    *  -> createComponent 方法目的是尝试创建子组件
    *  -> 判断 vnode 是否包含 tag且合法
@@ -217,7 +217,7 @@ export function createPatchFunction(backend) {
       insert(parentElm, vnode.elm, refElm)
     }
   }
-  /******************************************
+  /**
    *           patch阶段的createComponent    *
    *用于子组件的初始化：vnode转换dom      *
    *  createComponent -> componentVNodeHooks.init 

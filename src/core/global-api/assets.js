@@ -3,7 +3,7 @@
 import { ASSET_TYPES } from 'shared/constants'
 import { isPlainObject, validateComponentName } from '../util/index'
 
-/***************************************
+/**
  * Vue.component(tagName, options)
  * 全局组件注册
  * 1. initAssetRegisters方法
@@ -12,7 +12,7 @@ import { isPlainObject, validateComponentName } from '../util/index'
  *        判断isDef(Ctor = resolveAsset(context.$options, 'components', tag)
  *        -> resolveAsset 尝试以id、驼峰id、首字母大写id的顺序去获取components对应的构造函数
  *        -> vnode = createComponent(Ctor, data, context, children, tag)
- ***************************************/
+ */
 export function initAssetRegisters(Vue: GlobalAPI) {
   /**
    * Create asset registration methods.

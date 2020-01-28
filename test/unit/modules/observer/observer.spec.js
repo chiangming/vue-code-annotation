@@ -13,10 +13,10 @@ describe('Observer', () => {
     // skip primitive value
     const ob1 = observe(1)
     expect(ob1).toBeUndefined()
-    // avoid vue instance
+      // avoid vue instance
     const ob2 = observe(new Vue())
     expect(ob2).toBeUndefined()
-    // avoid frozen objects
+      // avoid frozen objects
     const ob3 = observe(Object.freeze({}))
     expect(ob3).toBeUndefined()
   })
@@ -31,10 +31,10 @@ describe('Observer', () => {
     expect(ob1 instanceof Observer).toBe(true)
     expect(ob1.value).toBe(obj)
     expect(obj.__ob__).toBe(ob1)
-    // should've walked children
+      // should've walked children
     expect(obj.a.__ob__ instanceof Observer).toBe(true)
     expect(obj.b.__ob__ instanceof Observer).toBe(true)
-    // should return existing ob on already observed objects
+      // should return existing ob on already observed objects
     const ob2 = observe(obj)
     expect(ob2).toBe(ob1)
   })
@@ -48,10 +48,10 @@ describe('Observer', () => {
     expect(ob1 instanceof Observer).toBe(true)
     expect(ob1.value).toBe(obj)
     expect(obj.__ob__).toBe(ob1)
-    // should've walked children
+      // should've walked children
     expect(obj.a.__ob__ instanceof Observer).toBe(true)
     expect(obj.b.__ob__ instanceof Observer).toBe(true)
-    // should return existing ob on already observed objects
+      // should return existing ob on already observed objects
     const ob2 = observe(obj)
     expect(ob2).toBe(ob1)
   })
@@ -64,11 +64,11 @@ describe('Observer', () => {
     Object.defineProperty(obj, 'a', {
       configurable: true,
       enumerable: true,
-      get () {
+      get() {
         getCount++
         return val
       },
-      set (v) { val = v }
+      set(v) { val = v }
     })
 
     const ob1 = observe(obj)
@@ -77,7 +77,7 @@ describe('Observer', () => {
     expect(obj.__ob__).toBe(ob1)
 
     getCount = 0
-    // Each read of 'a' should result in only one get underlying get call
+      // Each read of 'a' should result in only one get underlying get call
     obj.a
     expect(getCount).toBe(1)
     obj.a
@@ -98,7 +98,7 @@ describe('Observer', () => {
     Object.defineProperty(obj, 'a', {
       configurable: true,
       enumerable: true,
-      get () { return 123 }
+      get() { return 123 }
     })
 
     const ob1 = observe(obj)
@@ -129,7 +129,7 @@ describe('Observer', () => {
     Object.defineProperty(obj, 'a', { // eslint-disable-line accessor-pairs
       configurable: true,
       enumerable: true,
-      set (v) { val = v }
+      set(v) { val = v }
     })
 
     const ob1 = observe(obj)
@@ -171,7 +171,7 @@ describe('Observer', () => {
     expect(ob1 instanceof Observer).toBe(true)
     expect(ob1.value).toBe(arr)
     expect(arr.__ob__).toBe(ob1)
-    // should've walked children
+      // should've walked children
     expect(arr[0].__ob__ instanceof Observer).toBe(true)
     expect(arr[1].__ob__ instanceof Observer).toBe(true)
   })
@@ -179,23 +179,23 @@ describe('Observer', () => {
   it('observing object prop change', () => {
     const obj = { a: { b: 2 }, c: NaN }
     observe(obj)
-    // mock a watcher!
+      // mock a watcher!
     const watcher = {
-      deps: [],
-      addDep (dep) {
-        this.deps.push(dep)
-        dep.addSub(this)
-      },
-      update: jasmine.createSpy()
-    }
-    // collect dep
+        deps: [],
+        addDep(dep) {
+          this.deps.push(dep)
+          dep.addSub(this)
+        },
+        update: jasmine.createSpy()
+      }
+      // collect dep
     Dep.target = watcher
     obj.a.b
     Dep.target = null
     expect(watcher.deps.length).toBe(3) // obj.a + a + a.b
     obj.a.b = 3
     expect(watcher.update.calls.count()).toBe(1)
-    // swap object
+      // swap object
     obj.a = { b: 4 }
     expect(watcher.update.calls.count()).toBe(2)
     watcher.deps = []
@@ -205,10 +205,10 @@ describe('Observer', () => {
     obj.c
     Dep.target = null
     expect(watcher.deps.length).toBe(4)
-    // set on the swapped object
+      // set on the swapped object
     obj.a.b = 5
     expect(watcher.update.calls.count()).toBe(3)
-    // should not trigger on NaN -> NaN set
+      // should not trigger on NaN -> NaN set
     obj.c = NaN
     expect(watcher.update.calls.count()).toBe(3)
   })
@@ -218,8 +218,8 @@ describe('Observer', () => {
     Object.defineProperty(obj, 'a', {
       configurable: true,
       enumerable: true,
-      get () { return this.val },
-      set (v) {
+      get() { return this.val },
+      set(v) {
         this.val = v
         return this.val
       }
@@ -244,23 +244,23 @@ describe('Observer', () => {
     delProp(obj1, 'a')
     expect(hasOwn(obj1, 'a')).toBe(false)
     expect(dep1.notify.calls.count()).toBe(2)
-    // set existing key, should be a plain set and not
-    // trigger own ob's notify
+      // set existing key, should be a plain set and not
+      // trigger own ob's notify
     setProp(obj1, 'b', 3)
     expect(obj1.b).toBe(3)
     expect(dep1.notify.calls.count()).toBe(2)
-    // set non-existing key
+      // set non-existing key
     setProp(obj1, 'c', 1)
     expect(obj1.c).toBe(1)
     expect(dep1.notify.calls.count()).toBe(3)
-    // should ignore deleting non-existing key
+      // should ignore deleting non-existing key
     delProp(obj1, 'a')
     expect(dep1.notify.calls.count()).toBe(3)
-    // should work on non-observed objects
+      // should work on non-observed objects
     const obj2 = { a: 1 }
     delProp(obj2, 'a')
     expect(hasOwn(obj2, 'a')).toBe(false)
-    // should work on Object.create(null)
+      // should work on Object.create(null)
     const obj3 = Object.create(null)
     obj3.a = 1
     const ob3 = observe(obj3)
@@ -272,7 +272,7 @@ describe('Observer', () => {
     delProp(obj3, 'a')
     expect(hasOwn(obj3, 'a')).toBe(false)
     expect(dep3.notify.calls.count()).toBe(2)
-    // set and delete non-numeric key on array
+      // set and delete non-numeric key on array
     const arr2 = ['a']
     const ob2 = observe(arr2)
     const dep2 = ob2.dep
@@ -338,7 +338,7 @@ describe('Observer', () => {
     arr.sort()
     arr.reverse()
     expect(dep.notify.calls.count()).toBe(7)
-    // inserted elements should be observed
+      // inserted elements should be observed
     objs.forEach(obj => {
       expect(obj.__ob__ instanceof Observer).toBe(true)
     })

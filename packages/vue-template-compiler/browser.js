@@ -289,7 +289,7 @@
    * Define a property.
    */
   function def (obj, key, val, enumerable) {
-    Object.defineProperty(obj, key, {
+    /**(obj, key, {
       value: val,
       enumerable: !!enumerable,
       writable: true,
@@ -752,7 +752,7 @@
   if (inBrowser) {
     try {
       var opts = {};
-      Object.defineProperty(opts, 'passive', ({
+      /**(opts, 'passive', ({
         get: function get () {
         }
       })); // https://github.com/facebook/flow/issues/285
@@ -1289,7 +1289,7 @@
     }
 
     var childOb = !shallow && observe(val);
-    Object.defineProperty(obj, key, {
+    /**(obj, key, {
       enumerable: true,
       configurable: true,
       get: function reactiveGetter () {
@@ -5759,6 +5759,6 @@
   exports.ssrCompileToFunctions = compileToFunctions$1;
   exports.generateCodeFrame = generateCodeFrame;
 
-  Object.defineProperty(exports, '__esModule', { value: true });
+  /**(exports, '__esModule', { value: true });
 
 }));

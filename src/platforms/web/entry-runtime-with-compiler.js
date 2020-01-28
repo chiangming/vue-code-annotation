@@ -17,7 +17,7 @@ const idToTemplate = cached(id => {
   // 最终执行mountComponent方法
 const mount = Vue.prototype.$mount
 
-/********************************
+/**
  *             $mount           *
  ********************************/
 Vue.prototype.$mount = function(
@@ -67,7 +67,7 @@ Vue.prototype.$mount = function(
     } else if (el) {
       template = getOuterHTML(el) // 获取el的outerHTML
     }
-    /*******************************
+    /**
      *         编译相关的代码        *
      ******************************/
     if (template) {

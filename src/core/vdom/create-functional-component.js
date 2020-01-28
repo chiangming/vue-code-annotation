@@ -17,27 +17,27 @@ import {
   validateProp
 } from '../util/index'
 
-export function FunctionalRenderContext (
+export function FunctionalRenderContext(
   data: VNodeData,
   props: Object,
-  children: ?Array<VNode>,
-  parent: Component,
-  Ctor: Class<Component>
+  children: ? Array < VNode > ,
+  parent : Component,
+  Ctor: Class < Component >
 ) {
   const options = Ctor.options
-  // ensure the createElement function in functional components
-  // gets a unique context - this is necessary for correct named slot check
+    // ensure the createElement function in functional components
+    // gets a unique context - this is necessary for correct named slot check
   let contextVm
   if (hasOwn(parent, '_uid')) {
     contextVm = Object.create(parent)
-    // $flow-disable-line
+      // $flow-disable-line
     contextVm._original = parent
   } else {
     // the context vm passed in is a functional context as well.
     // in this case we want to make sure we are able to get a hold to the
     // real context instance.
     contextVm = parent
-    // $flow-disable-line
+      // $flow-disable-line
     parent = parent._original
   }
   const isCompiled = isTrue(options._compiled)
@@ -61,7 +61,7 @@ export function FunctionalRenderContext (
 
   Object.defineProperty(this, 'scopedSlots', ({
     enumerable: true,
-    get () {
+    get() {
       return normalizeScopedSlots(data.scopedSlots, this.slots())
     }
   }: any))
@@ -70,7 +70,7 @@ export function FunctionalRenderContext (
   if (isCompiled) {
     // exposing $options for renderStatic()
     this.$options = options
-    // pre-resolve slots for renderSlot()
+      // pre-resolve slots for renderSlot()
     this.$slots = this.slots()
     this.$scopedSlots = normalizeScopedSlots(data.scopedSlots, this.$slots)
   }
@@ -91,13 +91,13 @@ export function FunctionalRenderContext (
 
 installRenderHelpers(FunctionalRenderContext.prototype)
 
-export function createFunctionalComponent (
-  Ctor: Class<Component>,
-  propsData: ?Object,
-  data: VNodeData,
+export function createFunctionalComponent(
+  Ctor: Class < Component > ,
+  propsData: ? Object,
+  data : VNodeData,
   contextVm: Component,
-  children: ?Array<VNode>
-): VNode | Array<VNode> | void {
+  children: ? Array < VNode >
+): VNode | Array < VNode > | void {
   const options = Ctor.options
   const props = {}
   const propOptions = options.props
@@ -132,7 +132,7 @@ export function createFunctionalComponent (
   }
 }
 
-function cloneAndMarkFunctionalResult (vnode, data, contextVm, options, renderContext) {
+function cloneAndMarkFunctionalResult(vnode, data, contextVm, options, renderContext) {
   // #7817 clone node before setting fnContext, otherwise if the node is reused
   // (e.g. it was from a cached normal slot) the fnContext causes named slots
   // that should not be matched to match.
@@ -148,7 +148,7 @@ function cloneAndMarkFunctionalResult (vnode, data, contextVm, options, renderCo
   return clone
 }
 
-function mergeProps (to, from) {
+function mergeProps(to, from) {
   for (const key in from) {
     to[camelize(key)] = from[key]
   }

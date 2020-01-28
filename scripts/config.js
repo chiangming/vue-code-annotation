@@ -17,10 +17,10 @@ const banner =
   ' */'
 
 const weexFactoryPlugin = {
-  intro () {
+  intro() {
     return 'module.exports = function weexFactory (exports, document) {'
   },
-  outro () {
+  outro() {
     return '}'
   }
 }
@@ -213,7 +213,7 @@ const builds = {
   }
 }
 
-function genConfig (name) {
+function genConfig(name) {
   const opts = builds[name]
   const config = {
     input: opts.entry,
@@ -237,15 +237,15 @@ function genConfig (name) {
 
   // built-in vars
   const vars = {
-    __WEEX__: !!opts.weex,
-    __WEEX_VERSION__: weexVersion,
-    __VERSION__: version
-  }
-  // feature flags
+      __WEEX__: !!opts.weex,
+      __WEEX_VERSION__: weexVersion,
+      __VERSION__: version
+    }
+    // feature flags
   Object.keys(featureFlags).forEach(key => {
-    vars[`process.env.${key}`] = featureFlags[key]
-  })
-  // build-specific env
+      vars[`process.env.${key}`] = featureFlags[key]
+    })
+    // build-specific env
   if (opts.env) {
     vars['process.env.NODE_ENV'] = JSON.stringify(opts.env)
   }

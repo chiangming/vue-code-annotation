@@ -5,7 +5,7 @@ const path = require('path')
 const resolve = require('resolve')
 const NativeModule = require('module')
 
-function createSandbox (context) {
+function createSandbox(context) {
   const sandbox = {
     Buffer,
     console,
@@ -22,11 +22,11 @@ function createSandbox (context) {
   return sandbox
 }
 
-function compileModule (files, basedir, runInNewContext) {
+function compileModule(files, basedir, runInNewContext) {
   const compiledScripts = {}
   const resolvedModules = {}
 
-  function getCompiledScript (filename) {
+  function getCompiledScript(filename) {
     if (compiledScripts[filename]) {
       return compiledScripts[filename]
     }
@@ -40,16 +40,16 @@ function compileModule (files, basedir, runInNewContext) {
     return script
   }
 
-  function evaluateModule (filename, sandbox, evaluatedFiles = {}) {
+  function evaluateModule(filename, sandbox, evaluatedFiles = {}) {
     if (evaluatedFiles[filename]) {
       return evaluatedFiles[filename]
     }
 
     const script = getCompiledScript(filename)
-    const compiledWrapper = runInNewContext === false
-      ? script.runInThisContext()
-      : script.runInNewContext(sandbox)
-    const m = { exports: {}}
+    const compiledWrapper = runInNewContext === false ?
+      script.runInThisContext() :
+      script.runInNewContext(sandbox)
+    const m = { exports: {} }
     const r = file => {
       file = path.posix.join('.', file)
       if (files[file]) {
@@ -65,16 +65,16 @@ function compileModule (files, basedir, runInNewContext) {
     }
     compiledWrapper.call(m.exports, m.exports, r, m)
 
-    const res = Object.prototype.hasOwnProperty.call(m.exports, 'default')
-      ? m.exports.default
-      : m.exports
+    const res = Object.prototype.hasOwnProperty.call(m.exports, 'default') ?
+      m.exports.default :
+      m.exports
     evaluatedFiles[filename] = res
     return res
   }
   return evaluateModule
 }
 
-function deepClone (val) {
+function deepClone(val) {
   if (isPlainObject(val)) {
     const res = {}
     for (const key in val) {
@@ -88,7 +88,7 @@ function deepClone (val) {
   }
 }
 
-export function createBundleRunner (entry, files, basedir, runInNewContext) {
+export function createBundleRunner(entry, files, basedir, runInNewContext) {
   const evaluate = compileModule(files, basedir, runInNewContext)
   if (runInNewContext !== false && runInNewContext !== 'once') {
     // new context mode: creates a fresh context and re-evaluate the bundle
@@ -108,15 +108,15 @@ export function createBundleRunner (entry, files, basedir, runInNewContext) {
     let initialContext
     return (userContext = {}) => new Promise(resolve => {
       if (!runner) {
-        const sandbox = runInNewContext === 'once'
-          ? createSandbox()
-          : global
-        // the initial context is only used for collecting possible non-component
-        // styles injected by vue-style-loader.
+        const sandbox = runInNewContext === 'once' ?
+          createSandbox() :
+          global
+          // the initial context is only used for collecting possible non-component
+          // styles injected by vue-style-loader.
         initialContext = sandbox.__VUE_SSR_CONTEXT__ = {}
         runner = evaluate(entry, sandbox)
-        // On subsequent renders, __VUE_SSR_CONTEXT__ will not be available
-        // to prevent cross-request pollution.
+          // On subsequent renders, __VUE_SSR_CONTEXT__ will not be available
+          // to prevent cross-request pollution.
         delete sandbox.__VUE_SSR_CONTEXT__
         if (typeof runner !== 'function') {
           throw new Error(
@@ -130,14 +130,14 @@ export function createBundleRunner (entry, files, basedir, runInNewContext) {
       // vue-style-loader styles imported outside of component lifecycle hooks
       if (initialContext._styles) {
         userContext._styles = deepClone(initialContext._styles)
-        // #6353 ensure "styles" is exposed even if no styles are injected
-        // in component lifecycles.
-        // the renderStyles fn is exposed by vue-style-loader >= 3.0.3
+          // #6353 ensure "styles" is exposed even if no styles are injected
+          // in component lifecycles.
+          // the renderStyles fn is exposed by vue-style-loader >= 3.0.3
         const renderStyles = initialContext._renderStyles
         if (renderStyles) {
           Object.defineProperty(userContext, 'styles', {
             enumerable: true,
-            get () {
+            get() {
               return renderStyles(userContext._styles)
             }
           })

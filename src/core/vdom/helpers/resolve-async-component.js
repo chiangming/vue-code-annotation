@@ -91,6 +91,9 @@ export function resolveAsyncComponent(
       }
       // once保证函数只执行一次
       // 当工厂函数异步加载完毕时间调用resovle函数
+      // resolve 逻辑最后判断了 sync，显然我们这个场景下 sync 为 false，
+      // 那么就会执行 forceRender 函数，它会遍历 factory.contexts，拿到每一个调用异步组件的实例 vm, 
+      // 执行 vm.$forceUpdate() 方法
     const resolve = once((res: Object | Class < Component > ) => {
       // cache resolved
       factory.resolved = ensureCtor(res, baseCtor) // 返回异步组件的构造器

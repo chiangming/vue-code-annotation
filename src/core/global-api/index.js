@@ -29,7 +29,7 @@ export function initGlobalAPI(Vue: GlobalAPI) {
       )
     }
   }
-  Object.defineProperty(Vue, 'config', configDef)
+  (Vue, 'config', configDef)
 
   // exposed util methods.
   // NOTE: these are not considered part of the public API - avoid relying on

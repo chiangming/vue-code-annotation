@@ -4,10 +4,16 @@ import { def } from 'core/util/lang'
 import { normalizeChildren } from 'core/vdom/helpers/normalize-children'
 import { emptyObject } from 'shared/util'
 
-export function normalizeScopedSlots (
-  slots: { [key: string]: Function } | void,
-  normalSlots: { [key: string]: Array<VNode> },
-  prevSlots?: { [key: string]: Function } | void
+export function normalizeScopedSlots(
+  slots: {
+    [key: string]: Function
+  } | void,
+  normalSlots: {
+    [key: string]: Array < VNode >
+  },
+  prevSlots ? : {
+    [key: string]: Function
+  } | void
 ): any {
   let res
   const hasNormalSlots = Object.keys(normalSlots).length > 0
@@ -55,20 +61,20 @@ export function normalizeScopedSlots (
 }
 
 function normalizeScopedSlot(normalSlots, key, fn) {
-  const normalized = function () {
-    let res = arguments.length ? fn.apply(null, arguments) : fn({})
-    res = res && typeof res === 'object' && !Array.isArray(res)
-      ? [res] // single vnode
-      : normalizeChildren(res)
-    return res && (
-      res.length === 0 ||
-      (res.length === 1 && res[0].isComment) // #9658
-    ) ? undefined
-      : res
-  }
-  // this is a slot using the new v-slot syntax without scope. although it is
-  // compiled as a scoped slot, render fn users would expect it to be present
-  // on this.$slots because the usage is semantically a normal slot.
+  const normalized = function() {
+      let res = arguments.length ? fn.apply(null, arguments) : fn({})
+      res = res && typeof res === 'object' && !Array.isArray(res) ? [res] // single vnode
+        :
+        normalizeChildren(res)
+      return res && (
+          res.length === 0 ||
+          (res.length === 1 && res[0].isComment) // #9658
+        ) ? undefined :
+        res
+    }
+    // this is a slot using the new v-slot syntax without scope. although it is
+    // compiled as a scoped slot, render fn users would expect it to be present
+    // on this.$slots because the usage is semantically a normal slot.
   if (fn.proxy) {
     Object.defineProperty(normalSlots, key, {
       get: normalized,

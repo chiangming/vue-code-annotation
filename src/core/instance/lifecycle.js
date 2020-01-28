@@ -55,13 +55,35 @@ export function initLifecycle(vm: Component) {
   vm._isBeingDestroyed = false
 }
 
+/**
+ * beforeCreate ：是拿不到props，methods，data，computed和watch的
+ *                主要是用来混入vue-router、vuex等三方组件
+ *                在实例化 Vue 的阶段，在 _init 方法中执行的，定义在 src/core/instance/init.js 中
+ * created      ：可以拿到props，methods，data，computed和watch 
+ *                函数都是在实例化 Vue 的阶段，在 _init 方法中执行的，定义在 src/core/instance/init.js 中
+ * beforeMount  ：确保有render函数
+ *                在 mount阶段，也就是 DOM 挂载之前，在 mountComponent 函数中执行，定义在 当前lifecycle.js 中
+ * Mounted      ：1.表示父子组件全部挂载完毕，
+ *                  调用在 当前lifecycle.js 中 
+ *                2.表示子组件挂载完毕，
+ *                  调用在 定义在 vdom/patch.js的invokeInsertHook函数执行定义在 vdom/create-component.js 中的insert 这个钩子函数 
+ * beforeUpdate ：数据渲染之前，数据更新之后执行
+ *                在组件已经 mounted 之后（vm._isMounted == true），才会去调用 
+ *                在渲染 Watcher 的 before 函数中执行,定义在 当前lifecycle.js 中
+ * update       ：在数据重渲染（Virtual DOM re-render and patch）之后执行
+ *                在flushSchedulerQueue 函数调用时执行，它的定义在 src/core/observer/scheduler.js 中：
+ * beforeDestroy：先父后子执行
+ * destroyed    ：先子后父执行，可以做一些定时器的销毁工作
+ *                钩子函数的执行时机在组件销毁的阶段，最终会调用 $destroy 方法，它的定义在 当前lifecycle.js 中
+ * activated 和 deactivated 钩子函数是专门为 keep-alive 组件定制的钩子
+ */
 export function lifecycleMixin(Vue: Class < Component > ) {
-  /****************************
+  /**
    *        _update方法
    *   将VNode渲染成真实DOM
    *   首次渲染时调用，数据更新时调用
    * 核心方法： vm.__patch__
-   ****************************/
+   */
   Vue.prototype._update = function(vnode: VNode, hydrating ? : boolean) {
     const vm: Component = this
     const prevEl = vm.$el
@@ -71,23 +93,23 @@ export function lifecycleMixin(Vue: Class < Component > ) {
     vm._vnode = vnode
       // Vue.prototype.__patch__ is injected in entry points
       // based on the rendering backend used.
-      /******************************************************************************
-       * vm.__patch__在不同的平台('src/platforms/')，比如 web 和 weex 上的定义是不一样的   *
-       * web平台：Vue.prototype.__patch__ = inBrowser ? patch : noop                  *
-       * 在服务端渲染中，不需要把 VNode 最终转换成 DOM，因此是noop空函数，                    *
-       * 而在浏览器端渲染中，则是patch 函数(src/platforms/web/runtime/patch.js)            *
-       * 调用（src/core/vdom/patch.js）下的createPatchFunction函数构造                    *
-       * patch(oldVnode, vnode, hydrating, removeOnly) {...}                           *
-       ********************************************************************************/
+      /**
+       * vm.__patch__在不同的平台('src/platforms/')，比如 web 和 weex 上的定义是不一样的   
+       * web平台：Vue.prototype.__patch__ = inBrowser ? patch : noop                 
+       * 在服务端渲染中，不需要把 VNode 最终转换成 DOM，因此是noop空函数，                   
+       * 而在浏览器端渲染中，则是patch 函数(src/platforms/web/runtime/patch.js)          
+       * 调用（src/core/vdom/patch.js）下的createPatchFunction函数构造                    
+       * patch(oldVnode, vnode, hydrating, removeOnly) {...}                          
+       */
     if (!prevVnode) {
       // initial render
-      /****************************************************************************
-       * patch方法                                                                 *
-       * oldVnode 表示旧的 VNode 节点，它也可以不存在或者是一个 DOM 对象；                *
-       * vnode 表示执行 _render 后返回的 VNode 的节点；                                *
-       * hydrating 表示是否是服务端渲染；                                              *
-       * removeOnly 是给 transition-group 用的                                       *
-       ****************************************************************************/
+      /**
+       * patch方法                                                                
+       * oldVnode 表示旧的 VNode 节点，它也可以不存在或者是一个 DOM 对象；              
+       * vnode 表示执行 _render 后返回的 VNode 的节点；                               
+       * hydrating 表示是否是服务端渲染；                                             
+       * removeOnly 是给 transition-group 用的                                     
+       */
       // 首次渲染的时候
       // vm.$el传入真实dom，<div id="app">对应的dom对象，它赋值是在之前 mountComponent 函数做的
       // vnode为虚拟node，对应的是调用 render 函数的返回值，
@@ -167,14 +189,14 @@ export function lifecycleMixin(Vue: Class < Component > ) {
     }
   }
 }
-/*****************************
+/**
  *  vm.$mount最终执行的方法
  * 
  * new 渲染Watcher
  * -> cb调用 updateComponent方法，
  *      -> 调用 vm._render 方法先生成虚拟 Node，
  *      -> 调用 vm._update 更新 DOM。
- *****************************/
+ */
 export function mountComponent(
   vm: Component,
   el: ? Element,
@@ -227,7 +249,7 @@ export function mountComponent(
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
-    /*********************
+    /**
      * 定义了updateComponent函数 在渲染Watcher中执行
      * 函数执行vm._update方法
      * vm._render()得到渲染的VNode，定义在'./render.js'
@@ -245,15 +267,10 @@ export function mountComponent(
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
 
-  /************************************************
-   *        渲染Watcher中执行updateComponent方法    *
-   ***********************************************/
-  // 观察者模式 参数
-  // vm：vm
-  // expOrFn：将updateComponent设置为Watcher的getter方法
-  // cb：noop 回调函数为空函数
-  // options：{……}
-  // isRenderWatcher：true 设置为渲染Watcher
+
+  /**
+   *  渲染Watcher中执行updateComponent方法
+   */
   new Watcher(vm, updateComponent, noop, {
     before() {
       if (vm._isMounted && !vm._isDestroyed) {
@@ -413,26 +430,3 @@ export function callHook(vm: Component, hook: string) {
   }
   popTarget()
 }
-
-/**************************************************************************************************************************
- * beforeCreate ：是拿不到props，methods，data，computed和watch的
- *                主要是用来混入vue-router、vuex等三方组件
- *                在实例化 Vue 的阶段，在 _init 方法中执行的，定义在 src/core/instance/init.js 中
- * created      ：可以拿到props，methods，data，computed和watch 
- *                函数都是在实例化 Vue 的阶段，在 _init 方法中执行的，定义在 src/core/instance/init.js 中
- * beforeMount  ：确保有render函数
- *                在 mount阶段，也就是 DOM 挂载之前，在 mountComponent 函数中执行，定义在 当前lifecycle.js 中
- * Mounted      ：1.表示父子组件全部挂载完毕，
- *                  调用在 当前lifecycle.js 中 
- *                2.表示子组件挂载完毕，
- *                  调用在 定义在 vdom/patch.js的invokeInsertHook函数执行定义在 vdom/create-component.js 中的insert 这个钩子函数 
- * beforeUpdate ：数据渲染之前，数据更新之后执行
- *                在组件已经 mounted 之后（vm._isMounted == true），才会去调用 
- *                在渲染 Watcher 的 before 函数中执行,定义在 当前lifecycle.js 中
- * update       ：在数据重渲染（Virtual DOM re-render and patch）之后执行
- *                在flushSchedulerQueue 函数调用时执行，它的定义在 src/core/observer/scheduler.js 中：
- * beforeDestroy：先父后子执行
- * destroyed    ：先子后父执行，可以做一些定时器的销毁工作
- *                钩子函数的执行时机在组件销毁的阶段，最终会调用 $destroy 方法，它的定义在 当前lifecycle.js 中
- * activated 和 deactivated 钩子函数是专门为 keep-alive 组件定制的钩子
- ***********************************************************************************************************************/

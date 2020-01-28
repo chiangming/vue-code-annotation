@@ -45,7 +45,7 @@ export function createElement(
     }
     return _createElement(context, tag, data, children, normalizationType)
   }
-  /***************************************************************
+  /**
    *  render阶段的 _createElement方法
    * context  ：表示 VNode 的上下文环境
    * tag      ：表示标签 如果是一个普通的 html 标签，div，则会实例化一个普通 VNode 节点，
@@ -103,7 +103,7 @@ export function _createElement(
     children.length = 0
   }
 
-  /************************************
+  /**
    *         对children进行规范化       *
    * 如果children为多维数组则拍平为一维数组*
    ************************************/

@@ -143,7 +143,7 @@ strats.data = function(
 /**
  * Hooks and props are merged as arrays.
  */
-/************************************************************************
+/**
  * 对于钩子函数，他们的合并策略都是 mergeHook 函数。
  * 如果不存在 childVal ，就返回 parentVal；
  * 否则再判断是否存在 parentVal，如果存在就把 childVal 添加到 parentVal 后返回新数组；
@@ -387,7 +387,7 @@ function assertObjectType(name: string, value: any, vm: ? Component) {
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
  */
-/**********************************************************************
+/**
  * 把 parent 和 child 这两个对象根据一些合并策略，合并成一个新对象并返回。
  * 比较核心的几步:
  * 先递归把 extends 和 mixins 合并到 parent 上，

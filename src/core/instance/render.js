@@ -92,7 +92,7 @@ export function renderMixin(Vue: Class < Component > ) {
       // separately from one another. Nested component's render fns are called
       // when parent component is patched.
       currentRenderingInstance = vm
-        /*************************************************
+        /**
          *  手写的render函数的第一个参数即是createElement方法 *
          *  例如：                                        *
          *  render: function (createElement) {           *

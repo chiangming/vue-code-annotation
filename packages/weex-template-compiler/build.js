@@ -1,6 +1,6 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
+/**(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
@@ -245,7 +245,7 @@ var unicodeRegExp = /a-zA-Z\u00B7\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u037D\u037F-\
  * Define a property.
  */
 function def (obj, key, val, enumerable) {
-  Object.defineProperty(obj, key, {
+  /**(obj, key, {
     value: val,
     enumerable: !!enumerable,
     writable: true,
@@ -867,7 +867,7 @@ var nativeWatch = ({}).watch;
 if (inBrowser) {
   try {
     var opts = {};
-    Object.defineProperty(opts, 'passive', ({
+    /**(opts, 'passive', ({
       get: function get () {
       }
     })); // https://github.com/facebook/flow/issues/285
@@ -2903,7 +2903,7 @@ function defineReactive$$1 (
   }
 
   var childOb = !shallow && observe(val);
-  Object.defineProperty(obj, key, {
+  /**(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {

@@ -29,9 +29,9 @@ export function initMixin(Vue: Class < Component > ) {
     // a flag to avoid this being observed
     vm._isVue = true
       // merge options    // 把传入的option 合并到vm.$options上
-      /*****************************
-       *  子组件构造器调用_init方法时  *
-       *****************************/
+      /**
+       *  子组件构造器调用_init方法时  
+       */
 
     // 配置合并
     if (options && options._isComponent) {
@@ -85,7 +85,7 @@ export function initMixin(Vue: Class < Component > ) {
     }
   }
 }
-/***************************************************************************************************
+/**
  *       组件局部注册
  *  export default { components: { HelloWorld } }
  *  1. 局部注册组件的option放在子组件实例vm.$options
@@ -93,7 +93,7 @@ export function initMixin(Vue: Class < Component > ) {
  *        判断isDef(Ctor = resolveAsset(局部注册组件vm.$options, 'components', tag)
  *        -> resolveAsset 尝试以id、驼峰id、首字母大写id的顺序去获取局部注册components对应的构造函数Ctor
  *        -> vnode = createComponent(Ctor, data, context, children, tag)
- ************************************************************************************************/
+ */
 export function initInternalComponent(vm: Component, options: InternalComponentOptions) {
   // vm.constructor 就是子组件的构造函数 Sub
   // 这里相当于将局部注册组件的option放在局部组件实例vm.$options
