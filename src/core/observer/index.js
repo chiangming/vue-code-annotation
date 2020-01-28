@@ -46,10 +46,14 @@ export class Observer {
     def(value, '__ob__', this) // Object.defineProperty(obj, key, {value:this,enumerable:false,writable: true,configurable: true})
       // value.__ob__不会被walk中的for循环枚举
     if (Array.isArray(value)) {
-      if (hasProto) {
-        protoAugment(value, arrayMethods)
+      if (hasProto) { // 判断对象中是否存在 __proto__,一般来说现代浏览器都有
+        protoAugment(value, arrayMethods) // 直接把 target.__proto__ 原型直接修改为 arrayMethods
+          // arrayMethods 首先继承了 Array，
+          // 然后对数组中所有能改变数组自身的方法，如 push、pop 等这些方法进行重写。
+          // 重写后的方法会先执行它们本身原有的逻辑，并对能增加数组长度的 3 个方法 push、unshift、splice 方法做了判断，获取到插入的值，
+          // 然后把新添加的值变成一个响应式对象，并且再调用 ob.dep.notify() 手动触发依赖通知
       } else {
-        copyAugment(value, arrayMethods, arrayKeys)
+        copyAugment(value, arrayMethods, arrayKeys) // 通过 def，也就是 Object.defineProperty 去定义它自身的属性值。
       }
       this.observeArray(value) // 遍历数组调用-> observe方法 
     } else {
@@ -228,7 +232,7 @@ export function defineReactive(
     // 响应式setter，派发更新
     /**
      * 当数据发生变化的时候，触发 setter 逻辑，
-     * 把在依赖过程中订阅的的所有观察者，也就是 watcher，都触发它们的 update 过程，
+     * dep.notify()把在依赖过程中订阅的的所有观察者，也就是 watcher，都触发它们的 update 过程，
      * 这个过程又利用了队列做了进一步优化，
      * 在 nextTick 后执行所有 watcher 的 run，最后执行它们的回调函数。
      * @param {*} newVal 
@@ -260,6 +264,27 @@ export function defineReactive(
  * Set a property on an object. Adds the new property and
  * triggers change notification if the property doesn't
  * already exist.
+ */
+
+/**
+ * 首先判断如果 target 是数组且 key 是一个合法的下标，则之前通过 splice 去添加进数组然后返回，
+ * 这里的 splice 其实已经不仅仅是原生数组的 splice 。
+ * 接着又判断 key 已经存在于 target 中，则直接赋值返回，因为这样的变化是可以观测到了。
+ * 接着再获取到 target.__ob__ 并赋值给 ob，它是在 Observer 的构造函数执行的时候初始化的，表示 Observer 的一个实例，
+ * 如果它不存在，则说明 target 不是一个响应式的对象，则直接赋值并返回。
+ * 最后通过 defineReactive(ob.value, key, val) 把新添加的属性变成响应式对象，
+ * 然后再通过 ob.dep.notify() 手动的触发依赖通知
+ * 
+ * @param {*} target 可能是数组或者是普通对象
+ * @param {*} key 数组的下标或者是对象的键值
+ * @param {*} val 代表添加的值
+ * 
+ * 响应式数据中对于对象新增删除属性以及数组的下标修改访问不到
+ * 数组的情况，Vue 也是不能检测到以下变动的数组：
+ * 1.当你利用索引直接设置一个项时，例如：vm.items[indexOfItem] = newValue
+ * 2.当你修改数组的长度时，例如：vm.items.length = newLength
+ * 对于第一种情况，可以使用：Vue.set(example1.items, indexOfItem, newValue)；
+ * 而对于第二种情况，可以使用 vm.items.splice(newLength)。
  */
 export function set(target: Array < any > | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
