@@ -197,7 +197,17 @@ export function getData(data: Function, vm: Component): any {
 }
 
 const computedWatcherOptions = { lazy: true }
-
+  /**
+   * => 创建 vm._computedWatchers 为一个空对象Object.create(null)，
+   * => 对computed 对象做遍历，拿到计算属性的每一个 userDef，
+   * => 获取这个 userDef 对应的 getter 函数，拿不到则在开发环境下报警告。
+   * => 为每一个 getter 创建一个 computed watcher，
+   * => 调用 defineComputed(vm, key, userDef)，
+   * 
+   * 判断计算属性对于的 key 是否已经被 data 或者 prop 所占用，如果是的话则在开发环境报相应的警告。
+   * @param {*} vm 
+   * @param {*} computed 
+   */
 function initComputed(vm: Component, computed: Object) {
   // $flow-disable-line
   const watchers = vm._computedWatchers = Object.create(null)
@@ -216,6 +226,7 @@ function initComputed(vm: Component, computed: Object) {
 
     if (!isSSR) {
       // create internal watcher for the computed property.
+      // 创建的computed watcher
       watchers[key] = new Watcher(
         vm,
         getter || noop,
@@ -227,6 +238,8 @@ function initComputed(vm: Component, computed: Object) {
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
+
+    //组件定义的计算属性已在组件原型。我们只需要在实例化的时候定义已定义的计算属性
     if (!(key in vm)) {
       defineComputed(vm, key, userDef)
     } else if (process.env.NODE_ENV !== 'production') {
@@ -238,7 +251,13 @@ function initComputed(vm: Component, computed: Object) {
     }
   }
 }
-
+/**
+ * 通过Object.defineProperty 给计算属性对应的 key 值添加 getter 和 setter，
+ * setter 通常是计算属性是一个对象，并且拥有 set 方法的时候才有，否则是一个空函数。
+ * @param {*} target 
+ * @param {*} key 
+ * @param {*} userDef Computed方法或者带get/set属性的对象
+ */
 export function defineComputed(
   target: any,
   key: string,
@@ -269,16 +288,29 @@ export function defineComputed(
   }
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
-
+/**
+ * => watcher.dirty根据options初始化为true
+ * => watcher.get() & watcher.dirty =false => =>Dep.target =这个computed watcher
+ * => get方法执行computed中定义的get函数
+ * => 依赖的响应式data的获取触发data的getter => data持有的dep 添加到Dep.target也就是computer watcher中 
+ * => 依赖的响应式data的赋值触发data的setter => data.dep.notify() => watcher.update() 方法`if (this.lazy) {this.dirty = true}`
+ *    => 下次再访问这个计算属性的时候才会重新求值。
+ * 
+ *  例如：computed: { fullName: function () {return this.firstName + ' ' + this.lastName}}
+ *  这里的getter函数执行了执行了 return this.firstName + ' ' + this.lastName
+ *  而this.firstName和this.lastName是响应式对象，获取值会触发它们的 getter，
+ * @param {*} key 
+ */
 function createComputedGetter(key) {
+  // computed属性的get方法
   return function computedGetter() {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
       if (watcher.dirty) {
-        watcher.evaluate()
+        watcher.evaluate() //即 watcher.get() & watcher.dirty =false
       }
-      if (Dep.target) {
-        watcher.depend()
+      if (Dep.target) { // 这时候的 Dep.target 是渲染 watcher
+        watcher.depend() // 渲染 watcher 订阅了这个 computed watcher 的变化。
       }
       return watcher.value
     }
@@ -318,11 +350,22 @@ function initMethods(vm: Component, methods: Object) {
     vm[key] = typeof methods[key] !== 'function' ? noop : bind(methods[key], vm)
   }
 }
-
+/**
+ * => 对 watch 对象做遍历，拿到每一个 handler,
+ * => 调用 createWatcher 方法，
+ *    => hanlder 的类型做判断，拿到它最终的回调函数
+ *    => vm.$watch(expOrFn, handler, options)
+ *    => 执行 const watcher = new Watcher(vm, expOrFn, cb, options) 实例化了一个 user watcher
+ *    => new Watcher(vm, expOrFn, cb, options) // options.user=true 创建的用户watcher
+ *    => data的setter => data.dep.notify() => watcher.update() 方法 => ...=> watcher.run()
+ *    
+ * @param {*} vm 
+ * @param {*} watch 
+ */
 function initWatch(vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
-    if (Array.isArray(handler)) {
+    if (Array.isArray(handler)) { //  Vue 是支持 watch 的同一个 key 对应多个 handler
       for (let i = 0; i < handler.length; i++) {
         createWatcher(vm, key, handler[i])
       }

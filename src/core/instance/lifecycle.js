@@ -28,7 +28,10 @@ export function setActiveInstance(vm: Component) {
     activeInstance = prevActiveInstance
   }
 }
-
+/**
+ * 初始化生命周期的钩子flag标识，vm.$parent，vm.$root，vm.$children，vm.$refs
+ * @param {*} vm 组件
+ */
 export function initLifecycle(vm: Component) {
   const options = vm.$options
 
