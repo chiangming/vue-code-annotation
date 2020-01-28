@@ -190,11 +190,19 @@ export default class Watcher {
     } else if (this.sync) {
       this.run()
     } else {
-      queueWatcher(this)
+      queueWatcher(this) // 一般组件数据更新的场景，会走到最后一个 queueWatcher(this) 
     }
   }
 
   /**
+   * 通过 this.get() 得到它当前的值，然后做判断，
+   * 如果满足新旧值不等、新值是对象类型、deep 模式任何一个条件，
+   * 则执行 watcher 的回调，
+   * 回调函数执行的时候会把第一个和第二个参数传入新值 value 和旧值 oldValue，
+   * 这就是当我们添加自定义 watcher 的时候能在回调函数的参数中拿到新旧值的原因。
+   * 
+   * 渲染 watcher 而言，它在执行 this.get() 方法求值的时候，会执行 自定义的getter：updateComponent方法
+   * 
    * Scheduler job interface.
    * Will be called by the scheduler.
    */
@@ -206,6 +214,8 @@ export default class Watcher {
         // Deep watchers and watchers on Object/Arrays should fire even
         // when the value is the same, because the value may
         // have mutated.
+        // 即使值是相同的，深度watcher和对象/数组上的watcher也应该触发，
+        // 因为值可能发生了突变。
         isObject(value) ||
         this.deep
       ) {

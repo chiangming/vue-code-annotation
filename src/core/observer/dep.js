@@ -33,11 +33,14 @@ export default class Dep {
   }
 
   depend() {
-    if (Dep.target) {
-      Dep.target.addDep(this)
+      if (Dep.target) {
+        Dep.target.addDep(this)
+      }
     }
-  }
-
+    /**
+     * 遍历所有的 subs，也就是 Watcher 的实例数组，
+     * 然后调用每一个 watcher 的 update 方法
+     */
   notify() {
     // stabilize the subscriber list first
     const subs = this.subs.slice()
