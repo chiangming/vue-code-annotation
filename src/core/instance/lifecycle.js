@@ -267,6 +267,36 @@ export function mountComponent(
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
 
+  /***********************************************************************
+   * 依赖收集全过程
+   * 1. init阶段： initState 
+   * => initData/Props 
+   * => observe()-> new Observer()/defineReactive() 
+   * => defineReactive(value) 
+   * => Object.defineProperty定义get方法{dep = new Dep();dep.depend()}
+   * 
+   * 2. mount阶段：vm.$mount(el)
+   * => 2.1 mountComponent()定义 updateComponent方法vm._update(vm._render(), hydrating)
+   * => 2.2 new 渲染Watcher(updateComponent),updateComponent成为渲染watcher的getter方法
+   * => 执行渲染watcher.get()
+   * get方法{ 递归过程
+   * => pushTarget(渲染watcher)
+   * => Dep.target 赋值为当前的渲染 watcher 并压栈targetStack（为了嵌套渲染恢复用）
+   * => 渲染watcher.getter() -> 调用updateComponent方法vm._update(vm._render(), hydrating)
+   * 
+   * 3. mounte阶段的_render阶段：_render 
+   * => createElement(value) 
+   * => value赋值触发data的（1中定义）get方法
+   * => value中dep.depend()
+   * => Dep.target.addDep(this)也就是渲染watcher.addDep(this)) （this为value的get中的dep）
+   * => dep不在渲染wathcer的.newDeps中？渲染wathcer.newDeps.push(dep) // wathcer中放数据的dep， newDeps 表示新添加的 Dep 实例数组
+   * => dep不在渲染wathcer的.deps中？dep.addSub(渲染watcher)// dep 中放订阅数据变化的watcher数组，deps 表示上一次添加的 Dep 实例数组。
+   * 
+   * => traverse(value)递归去访问 value，触发它所有子项的 getter
+   * => popTarget()
+   * => cleanupDeps() // 移除对 dep.subs 数组中 Wathcer 的订阅，然后把 newDepIds 和 depIds 交换，newDeps 和 deps 交换，并把 newDepIds 和 newDeps 清空。
+   * 递归过程结束}
+   * /
 
   /**
    *  渲染Watcher中执行updateComponent方法

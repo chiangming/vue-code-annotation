@@ -49,6 +49,10 @@ export function proxy(target: Object, sourceKey: string, key: string) {
 }
 /**
  * 初始化 props，methods，data，computed和watch
+ * 响应式对象：
+ * observe(data是Object)-> walk(遍历Object的属性) -> defineReactive
+ * observe(data是Array) -> observeArray(遍历子元素) -> observe(子元素)
+ * observe(非根的props) ->defineReactive(自定义setter =>(wran(警告)))
  */
 export function initState(vm: Component) {
   vm._watchers = []
